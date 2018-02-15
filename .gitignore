@@ -1,0 +1,12 @@
+*.o
+imghand
+*.pro.user
+tags
+Makefile
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+.*.swp
+*.jpg
+.qmake.stash

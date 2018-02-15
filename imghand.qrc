@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/" >
+        <file>icons/exit.png</file>
+        <file>icons/fileopen.png</file>
+        <file>icons/filesaveas.png</file>
+        <file>icons/info.png</file>
+        <file>icons/launch.png</file>
+        <file>icons/showdata.png</file>
+        <file>icons/view_zoomfit.png</file>
+        <file>icons/view_zoomin.png</file>
+        <file>icons/view_zoomout.png</file>
+        <file>icons/view_zoomreset.png</file>
+        <file>icons/view_zoomsel.png</file>
+        <file>icons/view_source.png</file>
+        <file>icons/view_result.png</file>
+    </qresource>
+</RCC>
