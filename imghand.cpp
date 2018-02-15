@@ -56,7 +56,7 @@ ImgHand::ImgHand()
   scene( new QGraphicsScene( this ) ),
   view( new QGraphicsView( scene ) )
 {
-  scene->setSceneRect(0, 0, 320, 200); // safe values
+  scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
 
   pi1 = pi2 = nullptr;  // without pixmap items at start
@@ -100,10 +100,10 @@ void ImgHand::contextMenuEvent(QContextMenuEvent *event)
 
 void ImgHand::open()
 {
-  QString fileName = QFileDialog::getOpenFileName( this );
+  QString fileName = QFileDialog::getOpenFileName( this, "Image file", QString(), "Images (*.png *.tif *.jpg)" );
 
   if( !fileName.isEmpty() ) {
-    loadFile(fileName);
+    loadFile( fileName );
   }
 }
 
@@ -116,17 +116,19 @@ void ImgHand::loadFile( const QString &fileName )
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  *imgx = img->copy();
+  *imgx = img->convertToFormat( QImage::Format_Mono, Qt::ThresholdDither );
 
   if( pi1 != 0 ) {
     scene->removeItem( pi1 );
-    delete pi1; pi1 = 0;
+    delete pi1; pi1 = nullptr;
   }
   pi1 = scene->addPixmap( QPixmap::fromImage( *img ) );
+
   if( pi2 != 0 ) {
     scene->removeItem( pi2 );
     delete pi2; pi2 = 0;
   }
+  pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
 
   setCurrentFile( fileName );
 
@@ -141,6 +143,7 @@ void ImgHand::loadFile( const QString &fileName )
   loaded = true;
   scene->setSceneRect( 0, 0, img->width(), img->height() );
   viewZoomFit();
+  viewSource();
 
   QApplication::restoreOverrideCursor();
   statusBar()->showMessage( tr("File loaded"), 2000 );
@@ -157,7 +160,7 @@ void ImgHand::saveAs()
   QString fileName = QFileDialog::getSaveFileName( this );
 
   if( !fileName.isEmpty() ) {
-    imgx->save(fileName);
+    imgx->save( fileName );
   }
 }
 
