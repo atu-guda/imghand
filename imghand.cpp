@@ -274,8 +274,18 @@ void ImgHand::showInfo()
   QAreaSeries *series = new QAreaSeries( ser0 );
   series->setColor( Qt::black );
 
+  QScatterSeries *points = new QScatterSeries();
+  points->setMarkerShape( QScatterSeries::MarkerShapeCircle );
+  points->setMarkerSize( 5.0 );
+  points->setColor( Qt::red );
+  points->append( histo_05p, 0 );
+  points->append( histo_50p, 0 );
+  points->append( histo_95p, 0 );
+  points->append( histo_max, 0 );
+
   QChart *chart = new QChart;
   chart->addSeries( series );
+  chart->addSeries( points );
   // chart->setTitle( "Histogram" );
   chart->createDefaultAxes();
   auto ax_x = chart->axisX();
