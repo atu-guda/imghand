@@ -66,6 +66,7 @@ private slots:
       void showData();
 
       void analyze();
+      void makeBwSlot();
 
       void about();
 
@@ -76,6 +77,7 @@ private:
       void createStatusBar();
       void loadFile( const QString &fileName );
       void calcHisto();
+      void makeBW( uchar level = 128 );
       void setCurrentFile( const QString &fileName );
       QString strippedName( const QString &fullFileName );
 
@@ -110,6 +112,7 @@ private:
       // QAction *setOptionsAct;
       QAction *analyzeAct;
       QAction *showInfoAct;
+      QAction *makeBwAct;
 
       QAction *viewZoomInAct;
       QAction *viewZoomOutAct;

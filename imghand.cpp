@@ -43,6 +43,7 @@
 #include <QToolBar>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QTableWidgetItem>
 
 #include "imghand.h"
@@ -111,17 +112,20 @@ void ImgHand::open()
 
 void ImgHand::loadFile( const QString &fileName )
 {
-  QImage img0;
-  if ( ! img0.load( fileName ) ) {
-    QMessageBox::warning(this, tr("ImgHand"),  tr("Cannot read file %1:").arg(fileName) );
-    return;
+  {
+    QImage img0;
+    if ( ! img0.load( fileName ) ) {
+      QMessageBox::warning(this, tr("ImgHand"),  tr("Cannot read file %1:").arg(fileName) );
+      return;
+    }
+
+    QApplication::setOverrideCursor( Qt::WaitCursor );
+
+    *img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
   }
 
-  QApplication::setOverrideCursor( Qt::WaitCursor );
-
-  *img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
-  *imgx = img->convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   calcHisto();
+  makeBW( histo_50p );
 
   if( pi1 ) {
     scene->removeItem( pi1 );
@@ -183,6 +187,39 @@ void ImgHand::calcHisto()
     if( v > v_max ) {
       v_max = v; histo_max = i;
     }
+  }
+}
+
+void ImgHand::makeBW( uchar level )
+{
+  QImage i0 = img->copy();
+  uchar *d = i0.bits();
+  for( int i=0; i<n_pix; ++i, ++d ) {
+    *d = ( *d > level ) ? 255 : 0;
+  }
+  *imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
+}
+
+void ImgHand::makeBwSlot()
+{
+  if( !loaded ) {
+    return;
+  }
+  QString lbl = " p05: "
+        % QString::number( histo_05p ) + ";  p50: "
+        % QString::number( histo_50p ) + ";  p95: "
+        % QString::number( histo_95p ) + ";  p_max: "
+        % QString::number( histo_max ) ;
+  bool ok;
+  uchar level = QInputDialog::getInt( this, "Input white level", lbl, histo_50p, 0, 255, 1, &ok );
+  if( ok ) {
+    makeBW( level );
+   if( pi2 ) {
+      scene->removeItem( pi2 );
+      delete pi2; pi2 = nullptr;
+    }
+    pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
+    viewResult();
   }
 }
 
@@ -374,6 +411,10 @@ void ImgHand::createActions()
   connect( showInfoAct, SIGNAL(triggered()), this, SLOT(showInfo()) );
 
 
+  makeBwAct = new QAction( QIcon(":/icons/makebw.png"), tr("make &B/W"), this );
+  makeBwAct->setStatusTip( tr("Make black/white image with level") );
+  connect( makeBwAct, SIGNAL(triggered()), this, SLOT(makeBwSlot()) );
+
   analyzeAct = new QAction( QIcon(":/icons/launch.png"), tr("&Analyze"), this );
   analyzeAct->setShortcut( tr("F9") );
   analyzeAct->setStatusTip( tr("Analyze image") );
@@ -437,6 +478,7 @@ void ImgHand::createMenus()
 
   imageMenu = menuBar()->addMenu(tr("&Image"));
   imageMenu->addAction( showInfoAct );
+  imageMenu->addAction( makeBwAct );
   imageMenu->addSeparator();
   imageMenu->addAction( analyzeAct );
 
@@ -478,6 +520,7 @@ void ImgHand::createToolBars()
   fileToolBar->addSeparator();
 
   fileToolBar->addAction(showInfoAct);
+  fileToolBar->addAction(makeBwAct);
   fileToolBar->addAction(analyzeAct);
   fileToolBar->addSeparator();
 
