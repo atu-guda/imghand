@@ -67,6 +67,7 @@ private slots:
 
       void analyze();
       void makeBwSlot();
+      void boxCount0Slot();
 
       void about();
 
@@ -113,6 +114,7 @@ private:
       QAction *analyzeAct;
       QAction *showInfoAct;
       QAction *makeBwAct;
+      QAction *boxCount0Act;
 
       QAction *viewZoomInAct;
       QAction *viewZoomOutAct;
@@ -132,6 +134,8 @@ private:
       QAction *aboutAct;
       QAction *aboutQtAct;
 };
+
+bool halfImageBW( const QImage &s, QImage &d );
 
 #endif
 

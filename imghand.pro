@@ -7,12 +7,17 @@ QMAKE_CXXFLAGS += -g3  -std=gnu++17
 OBJECTS_DIR=.obj
 MOC_DIR=.moc
 
+unix:LIBS += $$system(gsl-config --libs)
+win32:LIBS += -lgsl -lgslcblas -lm
+
 # FORMS += xx.ui
 
 SOURCES += imghand.cpp \
-           main.cpp
+           main.cpp \
+           bit_ops.cpp
 
-HEADERS += imghand.h
+HEADERS += imghand.h \
+           bit_ops.h
 
 RESOURCES = imghand.qrc
 

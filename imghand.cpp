@@ -47,7 +47,11 @@
 #include <QTableWidgetItem>
 #include <QtCharts>
 
+#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_fit.h>
+
 #include "imghand.h"
+#include "bit_ops.h"
 
 using namespace std;
 using namespace QtCharts;
@@ -312,6 +316,116 @@ void ImgHand::showInfo()
   delete dia;
 }
 
+void ImgHand::boxCount0Slot()
+{
+  if( !loaded ) {
+    return;
+  }
+
+  unsigned long long cnbp;
+  unsigned max_pow = 16; // TODO: param
+  unsigned box_sz = 1, box_scale = 1;
+
+  double lnr, lnN;
+  vector<double> v_lnr, v_lnN;
+  v_lnr.reserve( max_pow ); v_lnN.reserve( max_pow );
+
+  QImage xi = imgx->copy();
+  unsigned pic_w = xi.width(), pic_h = xi.height();
+
+  while( pic_w > 8 ) {
+    pic_w = xi.width(); pic_h = xi.height();
+
+    QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
+    xi.save( cfn, "PNG" );
+    QRgb co0 = xi.color( 0 );
+    cout << "colorCount: " << xi.colorCount() << " 0:r= " << qRed(co0) << " g= " << qGreen(co0) <<  " b= " << qBlue(co0) << endl;
+
+    const uchar *sbits = xi.bits();
+    cnbp = count_bits0( sbits, pic_w/8 );
+    double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
+
+    lnr = log2( (double)(box_sz) );
+    lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
+    v_lnr.push_back( lnr ); v_lnN.push_back( lnN );
+    cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
+         << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
+         << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
+
+
+    // QImage zi( pic_w, pic_h, QImage::Format_Mono );
+    QImage zi;
+    halfImageBW( xi, zi );
+    box_sz <<= 1 ; box_scale <<= 2;
+    // uchar *dbits = zi.bits();
+    // cnbp = half2d_bits0( sbits, dbits, xi.bytesPerLine(), xi.height() );
+
+    xi = zi.copy();
+  }
+
+
+  double corr = gsl_stats_correlation( &(v_lnr[0]), 1, &(v_lnN[0]), 1, v_lnr.size()-2 );
+  double c0, c1, cov00, cov01, cov11, sumq;
+  gsl_fit_linear(  &(v_lnr[0]), 1, &(v_lnN[0]), 1, v_lnr.size()-2 ,
+                   &c0, &c1, &cov00, &cov01, &cov11, &sumq );
+
+  cout << "Corr: " << corr << " c0: " << c0 << " c1: " << c1
+       << " cov00: " << cov00 << " cov01: " << cov01 << " cov11: " << cov11
+       << " sumq: " << sumq << endl;
+  QMessageBox::information( this, "imghand: fractal dimension calc result",
+                            QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr ),
+                            QMessageBox::Ok );
+
+}
+
+bool halfImageBW( const QImage &s, QImage &d )
+{
+  if( s.format() != QImage::Format_Mono ) {
+    return false;
+  }
+  auto w = s.width(), h = s.height();
+  auto w1 = ( w >> 1 ) & ~0x07,   h1 = h >> 1;
+  QImage z( w1, h1, QImage::Format_Mono );
+  // int bpl_s = s.bytesPerLine();
+
+  for( int dline=0; dline<h1; ++dline ) {
+    uchar *d0 = z.scanLine( dline );
+    unsigned sline0 = dline  * 2;
+    unsigned sline1 = sline0 + 1;
+    const uchar *s0 = s.scanLine( sline0 );
+    const uchar *s1 = s.scanLine( sline1 );
+    for( int dcol = 0; dcol < w1/8; ++dcol ) {
+      unsigned char c = 0xFF;
+      unsigned char c0 = *s0, c1 = *s1;
+
+      if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
+        c &= ~ 0x80;
+      if( ( (c0 & 0x30) != 0x30 ) || ( (c1 & 0x30) != 0x30 ) )
+        c &= ~ 0x40;
+      if( ( (c0 & 0x0C) != 0x0C ) || ( (c1 & 0x0C) != 0x0C ) )
+        c &= ~ 0x20;
+      if( ( (c0 & 0x03) != 0x03 ) || ( (c1 & 0x03) != 0x03 ) )
+        c &= ~ 0x10;
+
+      ++s0; ++s1;
+      c0 = *s0; c1 = *s1;
+
+      if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
+        c &= ~ 0x08;
+      if( ( (c0 & 0x30) != 0x30 ) || ( (c1 & 0x30) != 0x30 ) )
+        c &= ~ 0x04;
+      if( ( (c0 & 0x0C) != 0x0C ) || ( (c1 & 0x0C) != 0x0C ) )
+        c &= ~ 0x02;
+      if( ( (c0 & 0x03) != 0x03 ) || ( (c1 & 0x03) != 0x03 ) )
+        c &= ~ 0x01;
+
+      ++s0; ++s1;
+      *d0++ = c;
+    }
+  }
+  d = z;
+  return true;
+}
 
 void ImgHand::showData()
 {
@@ -447,6 +561,11 @@ void ImgHand::createActions()
   makeBwAct->setStatusTip( tr("Make black/white image with level") );
   connect( makeBwAct, SIGNAL(triggered()), this, SLOT(makeBwSlot()) );
 
+  boxCount0Act = new QAction( QIcon(":/icons/boxcount0.png"), tr("Box&Count 0"), this );
+  showInfoAct->setShortcut( tr("F9") );
+  boxCount0Act->setStatusTip( tr("Make boxcount analisys type 0") );
+  connect( boxCount0Act, SIGNAL(triggered()), this, SLOT(boxCount0Slot()) );
+
   analyzeAct = new QAction( QIcon(":/icons/launch.png"), tr("&Analyze"), this );
   analyzeAct->setShortcut( tr("F9") );
   analyzeAct->setStatusTip( tr("Analyze image") );
@@ -511,6 +630,7 @@ void ImgHand::createMenus()
   imageMenu = menuBar()->addMenu(tr("&Image"));
   imageMenu->addAction( showInfoAct );
   imageMenu->addAction( makeBwAct );
+  imageMenu->addAction( boxCount0Act );
   imageMenu->addSeparator();
   imageMenu->addAction( analyzeAct );
 
@@ -553,6 +673,7 @@ void ImgHand::createToolBars()
 
   fileToolBar->addAction(showInfoAct);
   fileToolBar->addAction(makeBwAct);
+  fileToolBar->addAction(boxCount0Act);
   fileToolBar->addAction(analyzeAct);
   fileToolBar->addSeparator();
 

@@ -1,8 +1,10 @@
 <RCC>
     <qresource prefix="/" >
+        <file>icons/boxcount0.png</file>
         <file>icons/exit.png</file>
         <file>icons/fileopen.png</file>
         <file>icons/filesaveas.png</file>
+        <file>icons/fractal.png</file>
         <file>icons/info.png</file>
         <file>icons/launch.png</file>
         <file>icons/makebw.png</file>
