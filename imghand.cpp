@@ -45,10 +45,12 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QTableWidgetItem>
+#include <QtCharts>
 
 #include "imghand.h"
 
 using namespace std;
+using namespace QtCharts;
 
 
 ImgHand::ImgHand()
@@ -134,14 +136,6 @@ void ImgHand::loadFile( const QString &fileName )
   makeBW( histo_50p ); // pi2 added here
 
   setCurrentFile( fileName );
-
-  // iinf.w = img->width();
-  // iinf.h = img->height();
-  // iinf.bpp = img->depth();
-  // iinf.bypp = iinf.bpp/8;
-  // iinf.bpl = img->bytesPerLine();
-  // iinf.dpy_x = img->logicalDpiX();
-  // iinf.dpy_y = img->logicalDpiY();
 
   loaded = true;
   scene->setSceneRect( 0, 0, img->width(), img->height() );
@@ -268,10 +262,44 @@ void ImgHand::showInfo()
         + QString::number( histo_95p ) + ";  p_max: "
         + QString::number( histo_max ) + ";";
 
-  QMessageBox::about(this, tr("Image informaton"), s );
-  // for( auto v : histo_c ) {
-  //   cout << v << endl;
-  // }
+  // QMessageBox::about(this, tr("Image informaton"), s );
+
+  QDialog *dia = new QDialog( this );
+  QVBoxLayout *lay = new QVBoxLayout;
+
+  QLineSeries *ser0 = new QLineSeries;
+  for( int i=0; i< 256; ++i ) {
+    ser0->append( i, histo_r[i] );
+  }
+  QAreaSeries *series = new QAreaSeries( ser0 );
+  series->setColor( Qt::black );
+
+  QChart *chart = new QChart;
+  chart->addSeries( series );
+  // chart->setTitle( "Histogram" );
+  chart->createDefaultAxes();
+  auto ax_x = chart->axisX();
+  ax_x->setRange( 0, 256 );
+  ax_x->setLinePenColor( Qt::black );
+  chart->axisY()->setLabelsVisible( false );
+  chart->legend()->setVisible( false );
+  QChartView *chartView = new QChartView( chart );
+  chartView->setRenderHint( QPainter::Antialiasing );
+  lay->addWidget( chartView );
+
+  QLabel *l1 = new QLabel( s, dia );
+  lay->addWidget( l1 );
+
+  QPushButton *done = new QPushButton( "Done", dia );
+  done->setDefault( true );
+  lay->addWidget( done );
+  connect( done, SIGNAL(clicked()), dia, SLOT(accept()));
+
+  dia->setLayout( lay );
+  dia->resize( 560, 500 );
+
+  dia->exec();
+  delete dia;
 }
 
 

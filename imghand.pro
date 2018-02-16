@@ -1,6 +1,6 @@
 TEMPLATE = app
 # QT += core widgets printsupport
-QT += core widgets
+QT += core widgets charts
 TARGET = imghand
 CONFIG += c++17 release warn_on qt thread
 QMAKE_CXXFLAGS += -g3  -std=gnu++17
