@@ -124,20 +124,14 @@ void ImgHand::loadFile( const QString &fileName )
     *img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
   }
 
-  calcHisto();
-  makeBW( histo_50p );
-
   if( pi1 ) {
     scene->removeItem( pi1 );
     delete pi1; pi1 = nullptr;
   }
   pi1 = scene->addPixmap( QPixmap::fromImage( *img ) );
 
-  if( pi2 ) {
-    scene->removeItem( pi2 );
-    delete pi2; pi2 = nullptr;
-  }
-  pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
+  calcHisto();
+  makeBW( histo_50p ); // pi2 added here
 
   setCurrentFile( fileName );
 
@@ -198,6 +192,11 @@ void ImgHand::makeBW( uchar level )
     *d = ( *d > level ) ? 255 : 0;
   }
   *imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
+  if( pi2 ) {
+    scene->removeItem( pi2 );
+    delete pi2; pi2 = nullptr;
+  }
+  pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
 }
 
 void ImgHand::makeBwSlot()
@@ -214,11 +213,6 @@ void ImgHand::makeBwSlot()
   uchar level = QInputDialog::getInt( this, "Input white level", lbl, histo_50p, 0, 255, 1, &ok );
   if( ok ) {
     makeBW( level );
-   if( pi2 ) {
-      scene->removeItem( pi2 );
-      delete pi2; pi2 = nullptr;
-    }
-    pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
     viewResult();
   }
 }
