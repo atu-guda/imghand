@@ -65,6 +65,8 @@ private slots:
       void showInfo();
       void showData();
 
+      void analyze();
+
       void about();
 
 private:
@@ -73,7 +75,7 @@ private:
       void createToolBars();
       void createStatusBar();
       void loadFile( const QString &fileName );
-      void analyze();
+      void calcHisto();
       void setCurrentFile( const QString &fileName );
       QString strippedName( const QString &fullFileName );
 
@@ -87,6 +89,11 @@ private:
 
       QString curFile;
       bool loaded = false;
+      int n_pix = 256;             //* fake
+      int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0;
+      std::vector<int>    histo_0; //* initial counts
+      std::vector<double> histo_r; //* relative counts
+      std::vector<double> histo_c; //* cumulative counts
 
       // =================== User Interface =================
       QStatusBar *statBar;

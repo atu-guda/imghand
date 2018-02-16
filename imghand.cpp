@@ -54,8 +54,10 @@ ImgHand::ImgHand()
   :img( new QImage ),
   imgx( new QImage ),
   scene( new QGraphicsScene( this ) ),
-  view( new QGraphicsView( scene ) )
+  view( new QGraphicsView( scene ) ),
+  histo_0( 256, 0 ), histo_r( 256, 0.0 ), histo_c( 256, 1.0 )
 {
+  histo_0[0] = 1; histo_r[0] = 1.0; // fake save values
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
 
@@ -109,24 +111,27 @@ void ImgHand::open()
 
 void ImgHand::loadFile( const QString &fileName )
 {
-  if ( ! img->load( fileName ) ) {
+  QImage img0;
+  if ( ! img0.load( fileName ) ) {
     QMessageBox::warning(this, tr("ImgHand"),  tr("Cannot read file %1:").arg(fileName) );
     return;
   }
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  *imgx = img->convertToFormat( QImage::Format_Mono, Qt::ThresholdDither );
+  *img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
+  *imgx = img->convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
+  calcHisto();
 
-  if( pi1 != 0 ) {
+  if( pi1 ) {
     scene->removeItem( pi1 );
     delete pi1; pi1 = nullptr;
   }
   pi1 = scene->addPixmap( QPixmap::fromImage( *img ) );
 
-  if( pi2 != 0 ) {
+  if( pi2 ) {
     scene->removeItem( pi2 );
-    delete pi2; pi2 = 0;
+    delete pi2; pi2 = nullptr;
   }
   pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
 
@@ -149,6 +154,37 @@ void ImgHand::loadFile( const QString &fileName )
   statusBar()->showMessage( tr("File loaded"), 2000 );
 }
 
+void ImgHand::calcHisto()
+{
+  n_pix = img->width() * img->height(); // Format_Grayscale8 = 1 byte / pixel
+  uchar *d = img->bits();
+  histo_0.assign( 256, 0 );
+  for( int i=0; i<n_pix; ++i, ++d ) {
+    ++histo_0[*d];
+  }
+  double c = 0;
+  histo_05p = histo_50p = histo_95p = -1; // flag: not set
+  histo_max = 0;
+  double v_max = -1;
+  for( int i=0; i<256; ++i ) {
+    double v   = (double)histo_0[i] / n_pix;
+    histo_r[i] = v;
+    c += v;
+    histo_c[i] = c;
+    if( histo_05p < 0 && c >= 0.05 ) {
+      histo_05p = i;
+    }
+    if( histo_50p < 0 && c >= 0.5  ) {
+      histo_50p = i;
+    }
+    if( histo_95p < 0 && c >= 0.95  ) {
+      histo_95p = i;
+    }
+    if( v > v_max ) {
+      v_max = v; histo_max = i;
+    }
+  }
+}
 
 void ImgHand::saveAs()
 {
@@ -194,8 +230,17 @@ void ImgHand::showInfo()
         + QString::number( img->width() ) + " x "
         + QString::number( img->height() ) + ";  bpp: "
         + QString::number( img->depth() )+ ";  bpl: "
-        + QString::number( img->bytesPerLine() ) + ";  ";
+        + QString::number( img->bytesPerLine() ) + ";  n_pix: "
+        + QString::number( n_pix ) + ";  \n p05: "
+        + QString::number( histo_05p ) + ";  p50: "
+        + QString::number( histo_50p ) + ";  p95: "
+        + QString::number( histo_95p ) + ";  p_max: "
+        + QString::number( histo_max ) + ";";
+
   QMessageBox::about(this, tr("Image informaton"), s );
+  // for( auto v : histo_c ) {
+  //   cout << v << endl;
+  // }
 }
 
 
