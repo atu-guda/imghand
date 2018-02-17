@@ -411,37 +411,38 @@ bool halfImageBW( const QImage &s, QImage &d )
     const uchar *s0 = s.scanLine( sline0 );
     const uchar *s1 = s.scanLine( sline1 );
     for( unsigned dcol = 0; dcol < w1/8; ++dcol ) {
-      unsigned char c = 0xFF;
-      unsigned char c0 = *s0, c1 = *s1;
+      unsigned char c = 0x00;
+      unsigned char c0 = *s0++, c1 = *s1++;
       if( invers ) {
         c0 = ~c0; c1 = ~c1;
       }
+      unsigned char cx = ~(c0 & c1);
 
-      if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
-        c &= ~ 0x80;
-      if( ( (c0 & 0x30) != 0x30 ) || ( (c1 & 0x30) != 0x30 ) )
-        c &= ~ 0x40;
-      if( ( (c0 & 0x0C) != 0x0C ) || ( (c1 & 0x0C) != 0x0C ) )
-        c &= ~ 0x20;
-      if( ( (c0 & 0x03) != 0x03 ) || ( (c1 & 0x03) != 0x03 ) )
-        c &= ~ 0x10;
+      if( cx & 0xC0 )
+        c |= 0x80;
+      if( cx & 0x30 )
+        c |= 0x40;
+      if( cx & 0x0C )
+        c |= 0x20;
+      if( cx & 0x03 )
+        c |= 0x10;
 
-      ++s0; ++s1;
-      c0 = *s0; c1 = *s1;
+      c0 = *s0++; c1 = *s1++;
       if( invers ) {
         c0 = ~c0; c1 = ~c1;
       }
+      cx = ~(c0 & c1);
 
-      if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
-        c &= ~ 0x08;
-      if( ( (c0 & 0x30) != 0x30 ) || ( (c1 & 0x30) != 0x30 ) )
-        c &= ~ 0x04;
-      if( ( (c0 & 0x0C) != 0x0C ) || ( (c1 & 0x0C) != 0x0C ) )
-        c &= ~ 0x02;
-      if( ( (c0 & 0x03) != 0x03 ) || ( (c1 & 0x03) != 0x03 ) )
-        c &= ~ 0x01;
+      if( cx & 0xC0 )
+        c |= 0x08;
+      if( cx & 0x30 )
+        c |= 0x04;
+      if( cx & 0x0C )
+        c |= 0x02;
+      if( cx & 0x03 )
+        c |= 0x01;
 
-      ++s0; ++s1;
+      c = ~c;
       *d0++ = c;
     }
   }
