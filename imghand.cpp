@@ -353,6 +353,7 @@ void ImgHand::boxCount0Slot()
   QImage xi = imgx->copy();
   unsigned pic_w = xi.width(), pic_h = xi.height();
 
+  cout << endl;
   while( pic_w >= 32 ) {
     pic_w = xi.width(); pic_h = xi.height();
 
@@ -367,9 +368,10 @@ void ImgHand::boxCount0Slot()
     lnr = log2( (double)(box_sz) );
     lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
     v_lnr.push_back( lnr ); v_lnN.push_back( lnN );
-    cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
-         << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
-         << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
+    cout << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
+    // cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
+    //      << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
+    //      << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
 
     QImage zi;
     halfImageBW( xi, zi );
