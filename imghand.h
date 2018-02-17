@@ -78,7 +78,7 @@ private:
       void createStatusBar();
       void loadFile( const QString &fileName );
       void calcHisto();
-      void makeBW( uchar level = 128 );
+      void makeBW( int level = 128 );
       void setCurrentFile( const QString &fileName );
       QString strippedName( const QString &fullFileName );
 

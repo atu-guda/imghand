@@ -201,12 +201,19 @@ void ImgHand::calcHisto()
   }
 }
 
-void ImgHand::makeBW( uchar level )
+void ImgHand::makeBW( int level )
 {
   QImage i0 = img->copy();
+  uchar lev = abs( level );
+  bool invers = level < 0;
+  uchar black_lev = 0, white_lev = 255;
+  if( invers ) {
+    black_lev = 255; white_lev = 0;
+  }
+
   uchar *d = i0.bits();
   for( int i=0; i<n_pix; ++i, ++d ) {
-    *d = ( *d > level ) ? 255 : 0;
+    *d = ( *d > lev ) ? white_lev : black_lev;
   }
   *imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   if( pi2 ) {
@@ -227,7 +234,7 @@ void ImgHand::makeBwSlot()
         % QString::number( histo_95p ) + ";  p_max: "
         % QString::number( histo_max ) ;
   bool ok;
-  uchar level = QInputDialog::getInt( this, "Input white level", lbl, histo_50p, 0, 255, 1, &ok );
+  int level = QInputDialog::getInt( this, "Input white level", lbl, histo_50p, -255, 255, 1, &ok );
   if( ok ) {
     makeBW( level );
     viewResult();
@@ -236,11 +243,6 @@ void ImgHand::makeBwSlot()
 
 void ImgHand::saveAs()
 {
-  // if( ! analyzed ) {
-  //   QMessageBox::warning(this, tr("Missed output image"),
-  //           tr("There is no output image to save.  Use 'Analyze' to acquire." ));
-  //   return;
-  // }
   QString fileName = QFileDialog::getSaveFileName( this );
 
   if( !fileName.isEmpty() ) {
@@ -254,13 +256,6 @@ void ImgHand::analyze()
   if( !loaded  ) {
     return;
   }
-
-  // imgx->fill( QColor(Qt::black).rgb() );
-
-  // uchar *data1 = imgx->bits();
-  // uchar *d1;
-
-  // TEST: check average color
 
   QApplication::restoreOverrideCursor();
 
@@ -284,8 +279,6 @@ void ImgHand::showInfo()
         + QString::number( histo_50p ) + ";  p95: "
         + QString::number( histo_95p ) + ";  p_max: "
         + QString::number( histo_max ) + ";";
-
-  // QMessageBox::about(this, tr("Image informaton"), s );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
@@ -352,13 +345,13 @@ void ImgHand::boxCount0Slot()
   QImage xi = imgx->copy();
   unsigned pic_w = xi.width(), pic_h = xi.height();
 
-  while( pic_w > 8 ) {
+  while( pic_w >= 32 ) {
     pic_w = xi.width(); pic_h = xi.height();
 
     QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
     xi.save( cfn, "PNG" );
-    QRgb co0 = xi.color( 0 );
-    cout << "colorCount: " << xi.colorCount() << " 0:r= " << qRed(co0) << " g= " << qGreen(co0) <<  " b= " << qBlue(co0) << endl;
+    // QRgb co0 = xi.color( 0 );
+    // cout << "colorCount: " << xi.colorCount() << " 0:r= " << qRed(co0) << " g= " << qGreen(co0) <<  " b= " << qBlue(co0) << endl;
 
     cnbp = count_bits( xi, true );
     double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
@@ -370,8 +363,6 @@ void ImgHand::boxCount0Slot()
          << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
          << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
 
-
-    // QImage zi( pic_w, pic_h, QImage::Format_Mono );
     QImage zi;
     halfImageBW( xi, zi );
     box_sz <<= 1 ; box_scale <<= 2;
