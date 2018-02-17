@@ -100,6 +100,7 @@ private:
 
       // =================== User Interface =================
       QStatusBar *statBar;
+      QLabel *stat_lbl;
       QMenu *fileMenu;
       // QMenu *editMenu;
       QMenu *imageMenu;

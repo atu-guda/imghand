@@ -161,6 +161,7 @@ void ImgHand::loadFile( const QString &fileName )
   setCurrentFile( fileName );
 
   loaded = true;
+  stat_lbl->setText( "loaded" );
   scene->setSceneRect( 0, 0, img->width(), img->height() );
   viewZoomFit();
   viewSource();
@@ -229,6 +230,7 @@ void ImgHand::makeBW( int level )
     delete pi2; pi2 = nullptr;
   }
   pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
+  stat_lbl->setText( "B/W reaclculated" );
 }
 
 void ImgHand::makeBwSlot()
@@ -359,8 +361,6 @@ void ImgHand::boxCount0Slot()
 
     QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
     xi.save( cfn, "PNG" );
-    // QRgb co0 = xi.color( 0 );
-    // cout << "colorCount: " << xi.colorCount() << " 0:r= " << qRed(co0) << " g= " << qGreen(co0) <<  " b= " << qBlue(co0) << endl;
 
     cnbp = count_bits( xi, true );
     double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
@@ -393,7 +393,7 @@ void ImgHand::boxCount0Slot()
                             QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr ),
                             QMessageBox::Ok );
 
-  statusBar()->showMessage( QString::number( -c1 ) );
+  stat_lbl->setText( QString::number( -c1 ) );
 }
 
 bool halfImageBW( const QImage &s, QImage &d )
@@ -708,7 +708,7 @@ void ImgHand::createToolBars()
 void ImgHand::createStatusBar()
 {
   statBar = statusBar();
-  // statBar->addWidget( (labelSizePix =  new QLabel("(XxY).(WxH)")) );
+  statBar->addWidget( (stat_lbl =  new QLabel("x")) );
   // statBar->addWidget( (labelSizeU =  new QLabel("(0x0).(0x0)")) );
   // statBar->showMessage(tr("Ready"));
   //statusBar()->
