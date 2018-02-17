@@ -84,6 +84,8 @@ ImgHand::ImgHand()
   histo_0( 256, 0 ), histo_r( 256, 0.0 ), histo_c( 256, 1.0 )
 {
   histo_0[0] = 1; histo_r[0] = 1.0; // fake save values
+  v_lnr.reserve( 32 ); v_lnN.reserve( 32 );
+
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
 
@@ -345,12 +347,10 @@ void ImgHand::boxCount0Slot()
   }
 
   uint64_t cnbp;
-  unsigned max_pow = 16; // TODO: param
   unsigned box_sz = 1, box_scale = 1;
 
   double lnr, lnN;
-  vector<double> v_lnr, v_lnN;
-  v_lnr.reserve( max_pow ); v_lnN.reserve( max_pow );
+  v_lnr.clear(); v_lnN.clear();
 
   QImage xi = imgx->copy();
   unsigned pic_w = xi.width(), pic_h = xi.height();
@@ -381,9 +381,9 @@ void ImgHand::boxCount0Slot()
   }
 
 
-  double corr = gsl_stats_correlation( &(v_lnr[0]), 1, &(v_lnN[0]), 1, v_lnr.size()-2 );
+  double corr = gsl_stats_correlation( v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size()-2 );
   double c0, c1, cov00, cov01, cov11, sumq;
-  gsl_fit_linear(  &(v_lnr[0]), 1, &(v_lnN[0]), 1, v_lnr.size()-2 ,
+  gsl_fit_linear(  v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size()-2 ,
                    &c0, &c1, &cov00, &cov01, &cov11, &sumq );
 
   cout << "Corr: " << corr << " c0: " << c0 << " c1: " << c1

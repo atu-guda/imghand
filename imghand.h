@@ -97,6 +97,7 @@ private:
       std::vector<int>    histo_0; //* initial counts
       std::vector<double> histo_r; //* relative counts
       std::vector<double> histo_c; //* cumulative counts
+      std::vector<double> v_lnr, v_lnN;
 
       // =================== User Interface =================
       QStatusBar *statBar;
