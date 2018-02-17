@@ -156,7 +156,7 @@ void ImgHand::loadFile( const QString &fileName )
   pi1 = scene->addPixmap( QPixmap::fromImage( *img ) );
 
   calcHisto();
-  makeBW( histo_50p ); // pi2 added here
+  makeBW( histo_auto ); // pi2 added here
 
   setCurrentFile( fileName );
 
@@ -199,6 +199,14 @@ void ImgHand::calcHisto()
       v_max = v; histo_max = i;
     }
   }
+  histo_auto = histo_50p;
+  if( ( histo_95p - histo_50p ) < 5 || ( histo_50p - histo_05p ) < 5 ) {
+    if( ( histo_95p - histo_05p ) > 4 ) {
+      histo_auto = ( histo_95p + histo_05p ) / 2;
+    } else {
+      histo_auto = 127;
+    }
+  }
 }
 
 void ImgHand::makeBW( int level )
@@ -234,7 +242,7 @@ void ImgHand::makeBwSlot()
         % QString::number( histo_95p ) + ";  p_max: "
         % QString::number( histo_max ) ;
   bool ok;
-  int level = QInputDialog::getInt( this, "Input white level", lbl, histo_50p, -255, 255, 1, &ok );
+  int level = QInputDialog::getInt( this, "Input white level", lbl, histo_auto, -255, 255, 1, &ok );
   if( ok ) {
     makeBW( level );
     viewResult();
@@ -383,6 +391,7 @@ void ImgHand::boxCount0Slot()
                             QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr ),
                             QMessageBox::Ok );
 
+  statusBar()->showMessage( QString::number( -c1 ) );
 }
 
 bool halfImageBW( const QImage &s, QImage &d )
