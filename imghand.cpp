@@ -51,10 +51,29 @@
 #include <gsl/gsl_fit.h>
 
 #include "imghand.h"
-#include "bit_ops.h"
 
 using namespace std;
 using namespace QtCharts;
+
+// number of '1' bits in byte
+static const int bit_tab[256] = {
+  0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+  1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+  1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+  1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+  2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+  3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+  3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+  4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+};
 
 
 ImgHand::ImgHand()
@@ -322,7 +341,7 @@ void ImgHand::boxCount0Slot()
     return;
   }
 
-  unsigned long long cnbp;
+  uint64_t cnbp;
   unsigned max_pow = 16; // TODO: param
   unsigned box_sz = 1, box_scale = 1;
 
@@ -341,8 +360,7 @@ void ImgHand::boxCount0Slot()
     QRgb co0 = xi.color( 0 );
     cout << "colorCount: " << xi.colorCount() << " 0:r= " << qRed(co0) << " g= " << qGreen(co0) <<  " b= " << qBlue(co0) << endl;
 
-    const uchar *sbits = xi.bits();
-    cnbp = count_bits0( sbits, pic_w/8 );
+    cnbp = count_bits( xi, true );
     double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
 
     lnr = log2( (double)(box_sz) );
@@ -357,8 +375,6 @@ void ImgHand::boxCount0Slot()
     QImage zi;
     halfImageBW( xi, zi );
     box_sz <<= 1 ; box_scale <<= 2;
-    // uchar *dbits = zi.bits();
-    // cnbp = half2d_bits0( sbits, dbits, xi.bytesPerLine(), xi.height() );
 
     xi = zi.copy();
   }
@@ -383,20 +399,23 @@ bool halfImageBW( const QImage &s, QImage &d )
   if( s.format() != QImage::Format_Mono ) {
     return false;
   }
-  auto w = s.width(), h = s.height();
-  auto w1 = ( w >> 1 ) & ~0x07,   h1 = h >> 1;
+  unsigned w = s.width(), h = s.height();
+  unsigned w1 = ( w >> 1 ) & ~0x07,   h1 = h >> 1;
   QImage z( w1, h1, QImage::Format_Mono );
-  // int bpl_s = s.bytesPerLine();
+  bool invers = qRed( s.color( 0 )) != 0; // 0 may be white!
 
-  for( int dline=0; dline<h1; ++dline ) {
+  for( unsigned dline=0; dline<h1; ++dline ) {
     uchar *d0 = z.scanLine( dline );
     unsigned sline0 = dline  * 2;
     unsigned sline1 = sline0 + 1;
     const uchar *s0 = s.scanLine( sline0 );
     const uchar *s1 = s.scanLine( sline1 );
-    for( int dcol = 0; dcol < w1/8; ++dcol ) {
+    for( unsigned dcol = 0; dcol < w1/8; ++dcol ) {
       unsigned char c = 0xFF;
       unsigned char c0 = *s0, c1 = *s1;
+      if( invers ) {
+        c0 = ~c0; c1 = ~c1;
+      }
 
       if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
         c &= ~ 0x80;
@@ -409,6 +428,9 @@ bool halfImageBW( const QImage &s, QImage &d )
 
       ++s0; ++s1;
       c0 = *s0; c1 = *s1;
+      if( invers ) {
+        c0 = ~c0; c1 = ~c1;
+      }
 
       if( ( (c0 & 0xC0) != 0xC0 ) || ( (c1 & 0xC0) != 0xC0 ) )
         c &= ~ 0x08;
@@ -432,8 +454,8 @@ void ImgHand::showData()
   return;
   // if( vdp.empty() ) {
   //   QMessageBox::warning(this, tr("Missed data"),
-	// tr("There is no data to show. "
-	//   "Use 'Analyze Dir' to acquire data." ));
+  //      tr("There is no data to show. "
+  //         "Use 'Analyze Dir' to acquire data." ));
   //   return;
   // }
   // QDialog *ddi = new QDialog(this);
@@ -734,28 +756,34 @@ ImgHand::~ImgHand()
 
 }
 
-// --------------------- calculation functions
+// --------------------- bits calculation functions
 
-// void fillGoodColor( const uchar *src, uchar *dst, const ImageInfo *inf )
-// {
-//   long long d, sum;
-//
-//   uchar *d0;
-//   const uchar *s0;
-//
-//   for( int i=inf->wr_s_y; i<inf->wr_e_y; ++i ) {
-//     s0 = src + inf->bpl*i;
-//     d0 = dst + inf->bpl*i;
-//     for( int j=inf->wr_s_b; j<inf->wr_e_b; j+=inf->bypp ) {
-//       sum = 0;
-//       d = s0[j]   - inf->sp_b; d *= d; sum += d;
-//       d = s0[j+1] - inf->sp_g; d *= d; sum += d;
-//       d = s0[j+2] - inf->sp_r; d *= d; sum += d;
-//       if( sum < inf->tolerance ) {
-// 	d0[j] = 255; d0[j+1] = 0; d0[j+2] = 0;
-//       };
-//     };
-//   };
-//
-// }
+// works only if width is a multiple of 8
+uint64_t count_bits( const QImage &img, bool count0 )
+{
+  if( img.format() != QImage::Format_Mono ) {
+    return 0;
+  }
+  unsigned w = img.width(), h = img.height();
+  unsigned wb = w / 8; // in bytes
+  uint64_t nbits = 0, totalbits = (uint64_t) wb * 8 * h;
+  for( unsigned row = 0; row < h; ++row ) {
+    const unsigned char *s = img.scanLine( row );
+    for( unsigned i=0; i<wb; ++i ) {
+      nbits += bit_tab[s[i]];
+    }
+  }
+
+  QRgb co0 = img.color( 0 ); // 0 may be white!
+  if( qRed(co0) != 0 ) {
+    count0 = !count0;
+  }
+
+  if( count0 ) {
+    nbits = totalbits - nbits;
+  }
+  return nbits;
+}
+
+
 

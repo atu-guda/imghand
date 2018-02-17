@@ -13,11 +13,9 @@ win32:LIBS += -lgsl -lgslcblas -lm
 # FORMS += xx.ui
 
 SOURCES += imghand.cpp \
-           main.cpp \
-           bit_ops.cpp
+           main.cpp
 
-HEADERS += imghand.h \
-           bit_ops.h
+HEADERS += imghand.h
 
 RESOURCES = imghand.qrc
 

@@ -135,7 +135,10 @@ private:
       QAction *aboutQtAct;
 };
 
+// misc image and bits related funcs
+
 bool halfImageBW( const QImage &s, QImage &d );
+uint64_t count_bits( const QImage &img, bool count0 = false );
 
 #endif
 

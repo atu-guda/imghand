@@ -10,3 +10,7 @@ ui_*.h
 .*.swp
 *.jpg
 .qmake.stash
+tmp*.png
+[bw]40m4.png
+tmp.cpp
+
