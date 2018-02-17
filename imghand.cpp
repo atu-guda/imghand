@@ -381,17 +381,54 @@ void ImgHand::boxCount0Slot()
   }
 
 
-  double corr = gsl_stats_correlation( v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size()-2 );
+  double corr = gsl_stats_correlation( v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size() );
   double c0, c1, cov00, cov01, cov11, sumq;
-  gsl_fit_linear(  v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size()-2 ,
+  gsl_fit_linear(  v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size(),
                    &c0, &c1, &cov00, &cov01, &cov11, &sumq );
 
   cout << "Corr: " << corr << " c0: " << c0 << " c1: " << c1
        << " cov00: " << cov00 << " cov01: " << cov01 << " cov11: " << cov11
        << " sumq: " << sumq << endl;
-  QMessageBox::information( this, "imghand: fractal dimension calc result",
-                            QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr ),
-                            QMessageBox::Ok );
+  QString s = QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr );
+
+  QDialog *dia = new QDialog( this );
+  QVBoxLayout *lay = new QVBoxLayout;
+
+  QLineSeries *ser0 = new QLineSeries;
+  QLineSeries *ser1 = new QLineSeries;
+  for( unsigned i=0; i<v_lnr.size() ; ++i ) {
+    double x = v_lnr[i];
+    ser0->append( x, v_lnN[i] );
+    ser1->append( x, c0 + c1 * x );
+  }
+  ser0->setPen( QColor( Qt::black ) );
+  ser0->setPointsVisible( true );
+
+  QChart *chart = new QChart;
+  chart->addSeries( ser0 );
+  chart->addSeries( ser1 );
+  chart->createDefaultAxes();
+  auto ax_x = chart->axisX();
+  // ax_x->setRange( 0, 256 );
+  ax_x->setLinePenColor( Qt::black );
+  chart->legend()->setVisible( false );
+  QChartView *chartView = new QChartView( chart );
+  chartView->setRenderHint( QPainter::Antialiasing );
+  lay->addWidget( chartView );
+
+  QLabel *l1 = new QLabel( s, dia );
+  lay->addWidget( l1 );
+
+  QPushButton *done = new QPushButton( "Done", dia );
+  done->setDefault( true );
+  lay->addWidget( done );
+  connect( done, SIGNAL(clicked()), dia, SLOT(accept()));
+
+  dia->setLayout( lay );
+  dia->resize( 560, 500 );
+
+  dia->exec();
+  delete dia;
 
   stat_lbl->setText( QString::number( -c1 ) );
 }
@@ -592,7 +629,6 @@ void ImgHand::createActions()
   connect( boxCount0Act, SIGNAL(triggered()), this, SLOT(boxCount0Slot()) );
 
   analyzeAct = new QAction( QIcon(":/icons/launch.png"), tr("&Analyze"), this );
-  analyzeAct->setShortcut( tr("F9") );
   analyzeAct->setStatusTip( tr("Analyze image") );
   connect( analyzeAct, SIGNAL(triggered()), this, SLOT(analyze()) );
 
