@@ -13,4 +13,5 @@ ui_*.h
 tmp*.png
 [bw]40m4.png
 tmp.cpp
+/*.png
 
