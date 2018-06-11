@@ -84,9 +84,7 @@ static const int bit_tab[256] = {
 
 
 ImgHand::ImgHand()
-  :img( new QImage ),
-  imgx( new QImage ),
-  scene( new QGraphicsScene( this ) ),
+  : scene( new QGraphicsScene( this ) ),
   view( new QGraphicsView( scene ) ),
   histo_0( 256, 0 ), histo_r( 256, 0.0 ), histo_c( 256, 1.0 )
 {
@@ -144,6 +142,24 @@ void ImgHand::open()
   }
 }
 
+void ImgHand::updateSrcItem()
+{
+  if( pi1 ) {
+    scene->removeItem( pi1 );
+    delete pi1; pi1 = nullptr;
+  }
+  pi1 = scene->addPixmap( QPixmap::fromImage( img ) );
+}
+
+void ImgHand::updateDstItem()
+{
+  if( pi2 ) {
+    scene->removeItem( pi2 );
+    delete pi2; pi2 = nullptr;
+  }
+  pi2 = scene->addPixmap( QPixmap::fromImage( imgx ) );
+}
+
 void ImgHand::loadFile( const QString &fileName )
 {
   {
@@ -155,14 +171,10 @@ void ImgHand::loadFile( const QString &fileName )
 
     QApplication::setOverrideCursor( Qt::WaitCursor );
 
-    *img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
+    img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
   }
 
-  if( pi1 ) {
-    scene->removeItem( pi1 );
-    delete pi1; pi1 = nullptr;
-  }
-  pi1 = scene->addPixmap( QPixmap::fromImage( *img ) );
+  updateSrcItem();
 
   calcHisto();
   makeBW( histo_auto ); // pi2 added here
@@ -171,7 +183,7 @@ void ImgHand::loadFile( const QString &fileName )
 
   loaded = true;
   stat_lbl->setText( "loaded" );
-  scene->setSceneRect( 0, 0, img->width(), img->height() );
+  scene->setSceneRect( 0, 0, img.width(), img.height() );
   viewZoomFit();
   viewSource();
 
@@ -181,8 +193,8 @@ void ImgHand::loadFile( const QString &fileName )
 
 void ImgHand::calcHisto()
 {
-  n_pix = img->width() * img->height(); // Format_Grayscale8 = 1 byte / pixel
-  uchar *d = img->bits();
+  n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
+  uchar *d = img.bits();
   histo_0.assign( 256, 0 );
   for( int i=0; i<n_pix; ++i, ++d ) {
     ++histo_0[*d];
@@ -221,7 +233,7 @@ void ImgHand::calcHisto()
 
 void ImgHand::makeBW( int level )
 {
-  QImage i0 = img->copy();
+  QImage i0 = img.copy();
   uchar lev = abs( level );
   bool invers = level < 0;
   uchar black_lev = 0, white_lev = 255;
@@ -233,12 +245,8 @@ void ImgHand::makeBW( int level )
   for( int i=0; i<n_pix; ++i, ++d ) {
     *d = ( *d > lev ) ? white_lev : black_lev;
   }
-  *imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
-  if( pi2 ) {
-    scene->removeItem( pi2 );
-    delete pi2; pi2 = nullptr;
-  }
-  pi2 = scene->addPixmap( QPixmap::fromImage( *imgx ) );
+  imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
+  updateDstItem();
   stat_lbl->setText( "B/W reaclculated" );
 }
 
@@ -265,7 +273,7 @@ void ImgHand::saveAs()
   QString fileName = QFileDialog::getSaveFileName( this );
 
   if( !fileName.isEmpty() ) {
-    imgx->save( fileName );
+    imgx.save( fileName );
   }
 }
 
@@ -284,15 +292,15 @@ void ImgHand::analyze()
 
 void ImgHand::showInfo()
 {
-  if( !loaded || !img ) {
+  if( !loaded ) {
     return;
   }
   QString s;
   s = curFile + "\n "
-        + QString::number( img->width() ) + " x "
-        + QString::number( img->height() ) + ";  bpp: "
-        + QString::number( img->depth() )+ ";  bpl: "
-        + QString::number( img->bytesPerLine() ) + ";  n_pix: "
+        + QString::number( img.width() ) + " x "
+        + QString::number( img.height() ) + ";  bpp: "
+        + QString::number( img.depth() )+ ";  bpl: "
+        + QString::number( img.bytesPerLine() ) + ";  n_pix: "
         + QString::number( n_pix ) + ";  \n p05: "
         + QString::number( histo_05p ) + ";  p50: "
         + QString::number( histo_50p ) + ";  p95: "
@@ -359,7 +367,7 @@ void ImgHand::boxCount0Slot()
   double lnr, lnN;
   v_lnr.clear(); v_lnN.clear();
 
-  QImage xi = imgx->copy();
+  QImage xi = imgx.copy();
   unsigned pic_w = xi.width(), pic_h = xi.height();
 
   cout << endl;
@@ -442,9 +450,6 @@ void ImgHand::boxCount0Slot()
 
 void ImgHand::test0Slot()
 {
-  if( !img ) {
-    return;
-  }
   // Mat mat;
   // mat = imread( "apollonian_gasket_1.png", IMREAD_COLOR );
   // if( mat.empty() ) {
@@ -452,8 +457,8 @@ void ImgHand::test0Slot()
   //   return;
   // }
 
-  // QImage imgc  = img->convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
-  QImage imgc  = img->convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
+  // QImage imgc  = img.convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
+  QImage imgc  = img.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
 
   auto h = imgc.height();
   auto w = imgc.width();
@@ -476,9 +481,8 @@ void ImgHand::test0Slot()
 
   // Mat mat2;
   // cvtColor( mat1, mat2, CV_BGR2RGB );
-  if( img ) {
-    *img = QImage( (const unsigned char*)(mat1.data), mat1.cols, mat1.rows, QImage::Format_Grayscale8 );
-  }
+  img = QImage( (const unsigned char*)(mat1.data), mat1.cols, mat1.rows, QImage::Format_Grayscale8 );
+  updateSrcItem();
 
   namedWindow( "Display window", WINDOW_AUTOSIZE );
   imshow( "Display window", mat1 );
@@ -604,7 +608,7 @@ void ImgHand::viewZoomReset()
 
 void ImgHand::viewZoomFit()
 {
-  view->fitInView( 0, 0, img->width(), img->height(), Qt::KeepAspectRatio );
+  view->fitInView( 0, 0, img.width(), img.height(), Qt::KeepAspectRatio );
 }
 
 void ImgHand::viewZoomSel()
@@ -847,9 +851,6 @@ QString ImgHand::strippedName( const QString &fullFileName )
 
 ImgHand::~ImgHand()
 {
-  delete img;  img  = nullptr;
-  delete imgx; imgx = nullptr;
-
 }
 
 // --------------------- bits calculation functions

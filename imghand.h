@@ -83,9 +83,11 @@ private:
       void makeBW( int level = 128 );
       void setCurrentFile( const QString &fileName );
       QString strippedName( const QString &fullFileName );
+      void updateSrcItem();
+      void updateDstItem();
 
-      QImage *img;  //* source image
-      QImage *imgx; // image after filters
+      QImage img;  //* source image
+      QImage imgx; // image after filters
 
       // new Scene approach
       QGraphicsScene *scene;
