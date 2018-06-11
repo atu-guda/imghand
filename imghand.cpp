@@ -442,26 +442,45 @@ void ImgHand::boxCount0Slot()
 
 void ImgHand::test0Slot()
 {
-  Mat image;
-  image = imread( "apollonian_gasket_1.png", IMREAD_COLOR );
-  if( image.empty() ) {
-    cout <<  "Could not open or find the image" << std::endl ;
+  if( !img ) {
     return;
   }
+  // Mat mat;
+  // mat = imread( "apollonian_gasket_1.png", IMREAD_COLOR );
+  // if( mat.empty() ) {
+  //   cout <<  "Could not open or find the image" << std::endl ;
+  //   return;
+  // }
 
-  Mat img1;
+  QImage imgc  = img->convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
+
+  auto h = imgc.height();
+  auto w = imgc.width();
+  auto bpl = imgc.bytesPerLine();
+  Mat mat( h, w, CV_8UC3 );
+  for( int i=0; i<h; ++i ) {
+    memcpy( mat.ptr(i), imgc.scanLine(i), bpl );
+  }
+
+  Mat mat1; // = mat;
 
   // Mat ker = ( Mat_<char>( 3, 3 ) <<
   //      0, -1,  0,
   //     -1,  4, -1,
   //      0, -1,  0 );
   //
-  // filter2D( image, img1, image.depth(), ker );
+  // filter2D( mat, mat1, mat.depth(), ker );
 
-  Sobel( image, img1, image.depth(), 1, 1, 3, 1 );
+  Sobel( mat, mat1, mat.depth(), 1, 1, 3, 1 );
+
+  Mat mat2;
+  cvtColor( mat1, mat2, CV_BGR2RGB );
+  if( img ) {
+    *img = QImage( (const unsigned char*)(mat2.data), mat2.cols, mat2.rows, QImage::Format_RGB888 );
+  }
 
   namedWindow( "Display window", WINDOW_AUTOSIZE );
-  imshow( "Display window", img1 );
+  imshow( "Display window", mat1 );
 }
 
 bool halfImageBW( const QImage &s, QImage &d )
