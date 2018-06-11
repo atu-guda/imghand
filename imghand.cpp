@@ -483,6 +483,8 @@ void ImgHand::test0Slot()
   // cvtColor( mat1, mat2, CV_BGR2RGB );
   img = QImage( (const unsigned char*)(mat1.data), mat1.cols, mat1.rows, QImage::Format_Grayscale8 );
   updateSrcItem();
+  calcHisto();
+  makeBW( histo_auto ); // pi2 added here
 
   namedWindow( "Display window", WINDOW_AUTOSIZE );
   imshow( "Display window", mat1 );
