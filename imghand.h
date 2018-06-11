@@ -69,6 +69,8 @@ private slots:
       void makeBwSlot();
       void boxCount0Slot();
 
+      void test0Slot();
+
       void about();
 
 private:
@@ -117,6 +119,7 @@ private:
       QAction *showInfoAct;
       QAction *makeBwAct;
       QAction *boxCount0Act;
+      QAction *test0Act;
 
       QAction *viewZoomInAct;
       QAction *viewZoomOutAct;

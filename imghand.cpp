@@ -50,10 +50,17 @@
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_fit.h>
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+
 #include "imghand.h"
 
 using namespace std;
 using namespace QtCharts;
+
+using namespace cv;
 
 // number of '1' bits in byte
 static const int bit_tab[256] = {
@@ -433,6 +440,30 @@ void ImgHand::boxCount0Slot()
   stat_lbl->setText( QString::number( -c1 ) );
 }
 
+void ImgHand::test0Slot()
+{
+  Mat image;
+  image = imread( "apollonian_gasket_1.png", IMREAD_COLOR );
+  if( image.empty() ) {
+    cout <<  "Could not open or find the image" << std::endl ;
+    return;
+  }
+
+  Mat img1;
+
+  // Mat ker = ( Mat_<char>( 3, 3 ) <<
+  //      0, -1,  0,
+  //     -1,  4, -1,
+  //      0, -1,  0 );
+  //
+  // filter2D( image, img1, image.depth(), ker );
+
+  Sobel( image, img1, image.depth(), 1, 1, 3, 1 );
+
+  namedWindow( "Display window", WINDOW_AUTOSIZE );
+  imshow( "Display window", img1 );
+}
+
 bool halfImageBW( const QImage &s, QImage &d )
 {
   if( s.format() != QImage::Format_Mono ) {
@@ -632,6 +663,10 @@ void ImgHand::createActions()
   analyzeAct->setStatusTip( tr("Analyze image") );
   connect( analyzeAct, SIGNAL(triggered()), this, SLOT(analyze()) );
 
+  test0Act = new QAction( tr("test0 0"), this );
+  test0Act->setStatusTip( tr("test something 0") );
+  connect( test0Act, SIGNAL(triggered()), this, SLOT(test0Slot()) );
+
   aboutAct = new QAction(tr("&About"), this );
   aboutAct->setStatusTip(tr("Show the application's About box") );
   connect( aboutAct, SIGNAL(triggered()), this, SLOT(about()) );
@@ -692,6 +727,8 @@ void ImgHand::createMenus()
   imageMenu->addAction( showInfoAct );
   imageMenu->addAction( makeBwAct );
   imageMenu->addAction( boxCount0Act );
+  imageMenu->addSeparator();
+  imageMenu->addAction( test0Act );
   imageMenu->addSeparator();
   imageMenu->addAction( analyzeAct );
 
