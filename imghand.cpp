@@ -452,12 +452,13 @@ void ImgHand::test0Slot()
   //   return;
   // }
 
-  QImage imgc  = img->convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
+  // QImage imgc  = img->convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
+  QImage imgc  = img->convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
 
   auto h = imgc.height();
   auto w = imgc.width();
   auto bpl = imgc.bytesPerLine();
-  Mat mat( h, w, CV_8UC3 );
+  Mat mat( h, w, CV_8UC1 );
   for( int i=0; i<h; ++i ) {
     memcpy( mat.ptr(i), imgc.scanLine(i), bpl );
   }
@@ -473,10 +474,10 @@ void ImgHand::test0Slot()
 
   Sobel( mat, mat1, mat.depth(), 1, 1, 3, 1 );
 
-  Mat mat2;
-  cvtColor( mat1, mat2, CV_BGR2RGB );
+  // Mat mat2;
+  // cvtColor( mat1, mat2, CV_BGR2RGB );
   if( img ) {
-    *img = QImage( (const unsigned char*)(mat2.data), mat2.cols, mat2.rows, QImage::Format_RGB888 );
+    *img = QImage( (const unsigned char*)(mat1.data), mat1.cols, mat1.rows, QImage::Format_Grayscale8 );
   }
 
   namedWindow( "Display window", WINDOW_AUTOSIZE );
