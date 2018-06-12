@@ -52,6 +52,7 @@
 
 
 #include "imghand.h"
+#include "sobeldialog.h"
 
 using namespace std;
 using namespace QtCharts;
@@ -462,30 +463,45 @@ void ImgHand::mat2img( const Mat &m )
   updateSrcItem();
   calcHisto();
   makeBW( histo_auto ); // pi2 added here
+  viewSource();
 }
 
 void ImgHand::test0Slot()
 {
+  SobelData sd;
+  SobelDialog *dia = new SobelDialog( sd, this );
+  auto rc = dia->exec();
+  delete dia;
+
+  if( rc != QDialog::Accepted ) {
+    return;
+  }
+
   Mat mat;
   img2mat( mat );
 
   Mat mat1; // = mat;
 
-  // Mat ker = ( Mat_<char>( 3, 3 ) <<
-  //      0, -1,  0,
-  //     -1,  4, -1,
-  //      0, -1,  0 );
-  //
-  // filter2D( mat, mat1, mat.depth(), ker );
+  try {
+    Sobel( mat, mat1, mat.depth(), sd.dx, sd.dy, sd.ksize, sd.scale, sd.delta );
+  }
+  catch( cv::Exception &e ) {
+    cerr << "Sobel error: " << e.msg << endl;
+    return;
+  }
 
-  Sobel( mat, mat1, mat.depth(), 1, 1, 3, 1 );
-
-  // Mat mat2;
-  // cvtColor( mat1, mat2, CV_BGR2RGB );
   mat2img( mat1 );
 
   // namedWindow( "Display window", WINDOW_AUTOSIZE );
   // imshow( "Display window", mat1 );
+  // Mat ker = ( Mat_<char>( 3, 3 ) <<
+  //      0, -1,  0,
+  //     -1,  4, -1,
+  //      0, -1,  0 );
+  // Mat mat2;
+  // cvtColor( mat1, mat2, CV_BGR2RGB );
+  //
+  // filter2D( mat, mat1, mat.depth(), ker );
 }
 
 bool halfImageBW( const QImage &s, QImage &d )

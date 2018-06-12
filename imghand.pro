@@ -14,10 +14,12 @@ MOC_DIR=.moc
 
 # FORMS += xx.ui
 
-SOURCES += imghand.cpp \
-           main.cpp
+SOURCES += imghand.cpp
+SOURCES += sobeldialog.cpp
+SOURCES += main.cpp
 
 HEADERS += imghand.h
+HEADERS += sobeldialog.h
 
 RESOURCES = imghand.qrc
 
