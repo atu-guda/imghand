@@ -31,6 +31,10 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 class QAction;
 class QMenu;
@@ -85,6 +89,8 @@ private:
       QString strippedName( const QString &fullFileName );
       void updateSrcItem();
       void updateDstItem();
+      void img2mat( cv::Mat &m ) const;
+      void mat2img( const cv::Mat &m );
 
       QImage img;  //* source image
       QImage imgx; // image after filters

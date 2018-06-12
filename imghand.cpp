@@ -50,10 +50,6 @@
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_fit.h>
 
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
 
 #include "imghand.h"
 
@@ -448,25 +444,30 @@ void ImgHand::boxCount0Slot()
   stat_lbl->setText( QString::number( -c1 ) );
 }
 
-void ImgHand::test0Slot()
+void ImgHand::img2mat( Mat &m ) const
 {
-  // Mat mat;
-  // mat = imread( "apollonian_gasket_1.png", IMREAD_COLOR );
-  // if( mat.empty() ) {
-  //   cout <<  "Could not open or find the image" << std::endl ;
-  //   return;
-  // }
-
-  // QImage imgc  = img.convertToFormat( QImage::Format_RGB888, Qt::ThresholdDither );
-  QImage imgc  = img.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
-
-  auto h = imgc.height();
-  auto w = imgc.width();
-  auto bpl = imgc.bytesPerLine();
+  auto h = img.height();
+  auto w = img.width();
+  auto bpl = img.bytesPerLine();
   Mat mat( h, w, CV_8UC1 );
   for( int i=0; i<h; ++i ) {
-    memcpy( mat.ptr(i), imgc.scanLine(i), bpl );
+    memcpy( mat.ptr(i), img.scanLine(i), bpl );
   }
+  m = mat;
+}
+
+void ImgHand::mat2img( const Mat &m )
+{
+  img = QImage( (const unsigned char*)(m.data), m.cols, m.rows, QImage::Format_Grayscale8 );
+  updateSrcItem();
+  calcHisto();
+  makeBW( histo_auto ); // pi2 added here
+}
+
+void ImgHand::test0Slot()
+{
+  Mat mat;
+  img2mat( mat );
 
   Mat mat1; // = mat;
 
@@ -481,13 +482,10 @@ void ImgHand::test0Slot()
 
   // Mat mat2;
   // cvtColor( mat1, mat2, CV_BGR2RGB );
-  img = QImage( (const unsigned char*)(mat1.data), mat1.cols, mat1.rows, QImage::Format_Grayscale8 );
-  updateSrcItem();
-  calcHisto();
-  makeBW( histo_auto ); // pi2 added here
+  mat2img( mat1 );
 
-  namedWindow( "Display window", WINDOW_AUTOSIZE );
-  imshow( "Display window", mat1 );
+  // namedWindow( "Display window", WINDOW_AUTOSIZE );
+  // imshow( "Display window", mat1 );
 }
 
 bool halfImageBW( const QImage &s, QImage &d )
