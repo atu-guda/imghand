@@ -346,7 +346,7 @@ void ImgHand::showInfo()
   connect( done, SIGNAL(clicked()), dia, SLOT(accept()));
 
   dia->setLayout( lay );
-  dia->resize( 560, 500 );
+  dia->resize( 768, 500 );
 
   dia->exec();
   delete dia;
@@ -437,7 +437,7 @@ void ImgHand::boxCount0Slot()
   connect( done, SIGNAL(clicked()), dia, SLOT(accept()));
 
   dia->setLayout( lay );
-  dia->resize( 560, 500 );
+  dia->resize( 768, 500 );
 
   dia->exec();
   delete dia;
@@ -455,11 +455,20 @@ void ImgHand::img2mat( Mat &m ) const
     memcpy( mat.ptr(i), img.scanLine(i), bpl );
   }
   m = mat;
+  // namedWindow( "img2mat", WINDOW_AUTOSIZE );
+  // imshow( "img2mat", m );
 }
 
 void ImgHand::mat2img( const Mat &m )
 {
-  img = QImage( (const unsigned char*)(m.data), m.cols, m.rows, QImage::Format_Grayscale8 );
+  // namedWindow( "mat2img", WINDOW_AUTOSIZE );
+  // imshow( "mat2img", m );
+
+  img = QImage( m.cols, m.rows, QImage::Format_Grayscale8 );
+  auto bpl = img.bytesPerLine();
+  for( int i=0; i<m.rows; ++i ) {
+    memcpy( img.scanLine(i), m.ptr(i), bpl );
+  }
   updateSrcItem();
   calcHisto();
   makeBW( histo_auto ); // pi2 added here
@@ -492,8 +501,6 @@ void ImgHand::test0Slot()
 
   mat2img( mat1 );
 
-  // namedWindow( "Display window", WINDOW_AUTOSIZE );
-  // imshow( "Display window", mat1 );
   // Mat ker = ( Mat_<char>( 3, 3 ) <<
   //      0, -1,  0,
   //     -1,  4, -1,
