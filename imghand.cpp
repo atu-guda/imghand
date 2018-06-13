@@ -252,7 +252,7 @@ void ImgHand::makeBW( int level )
   }
   imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   updateDstItem();
-  stat_lbl->setText( "B/W reaclculated" );
+  stat_lbl->setText( "B/W recalculated" );
 }
 
 void ImgHand::makeBwSlot()
@@ -271,6 +271,24 @@ void ImgHand::makeBwSlot()
     makeBW( level );
     viewResult();
   }
+}
+
+
+void ImgHand::makeBwAdaSlot()
+{
+  if( !loaded ) {
+    return;
+  }
+  Mat mi, mo;
+  QImage img_t = img.copy();
+  img2mat( mi );
+  adaptiveThreshold( mi, mo, 255, ADAPTIVE_THRESH_GAUSSIAN_C,  THRESH_BINARY, 51, 1 );
+  mat2img( mo );
+  img = img_t;
+  updateSrcItem();
+  updateDstItem();
+  stat_lbl->setText( "B/W recalculated" );
+  viewResult();
 }
 
 void ImgHand::saveAs()
@@ -720,6 +738,10 @@ void ImgHand::createActions()
   makeBwAct->setStatusTip( tr("Make black/white image with level") );
   connect( makeBwAct, &QAction::triggered, this, &ImgHand::makeBwSlot );
 
+  makeBwAdaAct = new QAction( tr("&Adaptive B/W"), this );
+  makeBwAdaAct->setStatusTip( tr("Make black/white by adaptive algorithm") );
+  connect( makeBwAdaAct, &QAction::triggered, this, &ImgHand::makeBwAdaSlot );
+
   boxCount0Act = new QAction( QIcon(":/icons/boxcount0.png"), tr("Box&Count 0"), this );
   showInfoAct->setShortcut( tr("F9") );
   boxCount0Act->setStatusTip( tr("Make boxcount analysis type 0") );
@@ -794,6 +816,7 @@ void ImgHand::createMenus()
   imageMenu->addAction( restoreImageAct );
   imageMenu->addSeparator();
   imageMenu->addAction( makeBwAct );
+  imageMenu->addAction( makeBwAdaAct );
   imageMenu->addAction( boxCount0Act );
   imageMenu->addSeparator();
   imageMenu->addAction( sobelAct );

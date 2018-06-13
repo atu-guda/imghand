@@ -72,6 +72,7 @@ private slots:
       void restoreImage();
       void analyze();
       void makeBwSlot();
+      void makeBwAdaSlot();
       void boxCount0Slot();
 
       void sobelSlot();
@@ -129,6 +130,7 @@ private:
       QAction *analyzeAct;
       QAction *showInfoAct;
       QAction *makeBwAct;
+      QAction *makeBwAdaAct;
       QAction *boxCount0Act;
       QAction *sobelAct;
 
