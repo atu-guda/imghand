@@ -491,11 +491,18 @@ void ImgHand::test0Slot()
 
   Mat mat1; // = mat;
 
+  QString estr;
   try {
     Sobel( mat, mat1, mat.depth(), sd.dx, sd.dy, sd.ksize, sd.scale, sd.delta );
   }
   catch( cv::Exception &e ) {
-    cerr << "Sobel error: " << e.msg << endl;
+    estr = e.msg.c_str();
+    // cerr << "Sobel error: " << e.msg << endl;
+    // return;
+  }
+
+  if( ! estr.isEmpty() ) {
+    QMessageBox::warning( this, QStringLiteral("Error"), estr );
     return;
   }
 
