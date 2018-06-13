@@ -100,8 +100,8 @@ void SobelDialog::setupUi()
   scale_label->setBuddy( scale_le );
   delta_label->setBuddy( delta_le );
 
-  QObject::connect( buttonBox, SIGNAL(accepted()), this, SLOT(accept()) );
-  QObject::connect( buttonBox, SIGNAL(rejected()), this, SLOT(reject()) );
+  QObject::connect( buttonBox, &QDialogButtonBox::accepted, this, &SobelDialog::accept );
+  QObject::connect( buttonBox, &QDialogButtonBox::rejected, this, &SobelDialog::reject );
 
   // QMetaObject::connectSlotsByName(this);
 }
