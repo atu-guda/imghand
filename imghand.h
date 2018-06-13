@@ -69,6 +69,7 @@ private slots:
       void showInfo();
       void showData();
 
+      void restoreImage();
       void analyze();
       void makeBwSlot();
       void boxCount0Slot();
@@ -92,8 +93,9 @@ private:
       void img2mat( cv::Mat &m ) const;
       void mat2img( const cv::Mat &m );
 
-      QImage img;  //* source image
-      QImage imgx; // image after filters
+      QImage img;    //* source image
+      QImage img_s;  //* saved image
+      QImage imgx;   //* image after filters
 
       // new Scene approach
       QGraphicsScene *scene;
@@ -123,6 +125,7 @@ private:
       // QAction *newAct;
       QAction *openAct;
       // QAction *setOptionsAct;
+      QAction *restoreImageAct;
       QAction *analyzeAct;
       QAction *showInfoAct;
       QAction *makeBwAct;

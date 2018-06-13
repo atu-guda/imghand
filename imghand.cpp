@@ -168,24 +168,32 @@ void ImgHand::loadFile( const QString &fileName )
 
     QApplication::setOverrideCursor( Qt::WaitCursor );
 
-    img  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
+    img_s  = img0.convertToFormat( QImage::Format_Grayscale8, Qt::ThresholdDither );
   }
 
-  updateSrcItem();
-
-  calcHisto();
-  makeBW( histo_auto ); // pi2 added here
-
-  setCurrentFile( fileName );
-
   loaded = true;
+  setCurrentFile( fileName );
   stat_lbl->setText( "loaded" );
-  scene->setSceneRect( 0, 0, img.width(), img.height() );
-  viewZoomFit();
-  viewSource();
+  scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
+  restoreImage();
+
+  makeBW( histo_auto ); // pi2 added here
 
   QApplication::restoreOverrideCursor();
   statusBar()->showMessage( tr("File loaded"), 2000 );
+}
+
+void ImgHand::restoreImage()
+{
+  if( !loaded ) {
+    return;
+  }
+  img = img_s.copy();
+
+  updateSrcItem();
+  calcHisto();
+  viewZoomFit();
+  viewSource();
 }
 
 void ImgHand::calcHisto()
@@ -704,6 +712,10 @@ void ImgHand::createActions()
   connect( showInfoAct, &QAction::triggered, this, &ImgHand::showInfo );
 
 
+  restoreImageAct = new QAction( QStringLiteral("&Restore Image"), this );
+  restoreImageAct->setStatusTip( tr("Resore image") );
+  connect( restoreImageAct, &QAction::triggered, this, &ImgHand::restoreImage );
+
   makeBwAct = new QAction( QIcon(":/icons/makebw.png"), tr("make &B/W"), this );
   makeBwAct->setStatusTip( tr("Make black/white image with level") );
   connect( makeBwAct, &QAction::triggered, this, &ImgHand::makeBwSlot );
@@ -779,6 +791,8 @@ void ImgHand::createMenus()
 
   imageMenu = menuBar()->addMenu( tr("&Image") );
   imageMenu->addAction( showInfoAct );
+  imageMenu->addAction( restoreImageAct );
+  imageMenu->addSeparator();
   imageMenu->addAction( makeBwAct );
   imageMenu->addAction( boxCount0Act );
   imageMenu->addSeparator();
