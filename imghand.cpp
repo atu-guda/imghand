@@ -475,7 +475,7 @@ void ImgHand::mat2img( const Mat &m )
   viewSource();
 }
 
-void ImgHand::test0Slot()
+void ImgHand::sobelSlot()
 {
   SobelData sd;
   SobelDialog *dia = new SobelDialog( sd, this );
@@ -717,9 +717,9 @@ void ImgHand::createActions()
   analyzeAct->setStatusTip( tr("Analyze image") );
   connect( analyzeAct, SIGNAL(triggered()), this, SLOT(analyze()) );
 
-  test0Act = new QAction( tr("test0 0"), this );
-  test0Act->setStatusTip( tr("test something 0") );
-  connect( test0Act, SIGNAL(triggered()), this, SLOT(test0Slot()) );
+  sobelAct = new QAction( QStringLiteral("&Sobel"), this );
+  sobelAct->setStatusTip( tr("Apply Sobel transormation") );
+  connect( sobelAct, SIGNAL(triggered()), this, SLOT(sobelSlot()) );
 
   aboutAct = new QAction(tr("&About"), this );
   aboutAct->setStatusTip(tr("Show the application's About box") );
@@ -782,7 +782,7 @@ void ImgHand::createMenus()
   imageMenu->addAction( makeBwAct );
   imageMenu->addAction( boxCount0Act );
   imageMenu->addSeparator();
-  imageMenu->addAction( test0Act );
+  imageMenu->addAction( sobelAct );
   imageMenu->addSeparator();
   imageMenu->addAction( analyzeAct );
 
