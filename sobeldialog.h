@@ -10,6 +10,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 struct SobelData {
@@ -26,12 +27,15 @@ class SobelDialog : public QDialog {
    SobelDialog( SobelData &sd, QWidget *parent );
    void setupUi();
    virtual void accept() override;
+  public slots:
+   void revert();
+   void setDefault();
   private:
    SobelData &d;
    QVBoxLayout *verticalLayout;
    QGridLayout *gridLayout;
    QLabel *dx_label;
-   QComboBox *dx_cb;
+   QComboBox *dx_cb = nullptr;
    QLabel *dy_label;
    QComboBox *dy_cb;
    QLabel *ksize_label;
@@ -43,6 +47,8 @@ class SobelDialog : public QDialog {
    QLabel *label;
    QCheckBox *rescale_cb;
    QDialogButtonBox *buttonBox;
+   QPushButton *btnRevert;
+   QPushButton *btnDefault;
 };
 
 #endif

@@ -105,13 +105,13 @@ ImgHand::ImgHand()
   setCurrentFile( "" );
 }
 
-// void ImgHand::closeEvent(QCloseEvent *event)
+// void ImgHand::closeEvent( QCloseEvent *event )
 // {
 //   event->accept();
 //   loaded = calibrated = analyzed = 0;
 // }
 
-void ImgHand::contextMenuEvent(QContextMenuEvent *event)
+void ImgHand::contextMenuEvent( QContextMenuEvent *event )
 {
   QMenu menu( this );
   menu.addAction( viewZoomInAct    );
@@ -162,7 +162,7 @@ void ImgHand::loadFile( const QString &fileName )
   {
     QImage img0;
     if ( ! img0.load( fileName ) ) {
-      QMessageBox::warning(this, tr("ImgHand"),  tr("Cannot read file %1:").arg(fileName) );
+      QMessageBox::warning( this, tr("ImgHand"),  tr("Cannot read file %1:").arg( fileName ) );
       return;
     }
 
@@ -452,7 +452,7 @@ void ImgHand::img2mat( Mat &m ) const
   auto bpl = img.bytesPerLine();
   Mat mat( h, w, CV_8UC1 );
   for( int i=0; i<h; ++i ) {
-    memcpy( mat.ptr(i), img.scanLine(i), bpl );
+    memcpy( mat.ptr( i ), img.scanLine( i ), bpl );
   }
   m = mat;
   // namedWindow( "img2mat", WINDOW_AUTOSIZE );
@@ -467,7 +467,7 @@ void ImgHand::mat2img( const Mat &m )
   img = QImage( m.cols, m.rows, QImage::Format_Grayscale8 );
   auto bpl = img.bytesPerLine();
   for( int i=0; i<m.rows; ++i ) {
-    memcpy( img.scanLine(i), m.ptr(i), bpl );
+    memcpy( img.scanLine( i ), m.ptr( i ), bpl );
   }
   updateSrcItem();
   calcHisto();
@@ -540,7 +540,7 @@ bool halfImageBW( const QImage &s, QImage &d )
       if( invers ) {
         c0 = ~c0; c1 = ~c1;
       }
-      unsigned char cx = ~(c0 & c1);
+      unsigned char cx = ~( c0 & c1 );
 
       if( cx & 0xC0 )
         c |= 0x80;
@@ -555,7 +555,7 @@ bool halfImageBW( const QImage &s, QImage &d )
       if( invers ) {
         c0 = ~c0; c1 = ~c1;
       }
-      cx = ~(c0 & c1);
+      cx = ~( c0 & c1 );
 
       if( cx & 0xC0 )
         c |= 0x08;
@@ -578,7 +578,7 @@ void ImgHand::showData()
 {
   return;
   // if( vdp.empty() ) {
-  //   QMessageBox::warning(this, tr("Missed data"),
+  //   QMessageBox::warning( this, tr("Missed data"),
   //      tr("There is no data to show. "
   //         "Use 'Analyze Dir' to acquire data." ));
   //   return;
@@ -671,9 +671,9 @@ void ImgHand::viewResult()
 
 void ImgHand::about()
 {
-  QMessageBox::about(this, tr("About ImgHand"),
+  QMessageBox::about( this, tr("About ImgHand"),
       tr("The <b>ImgHand</b> is a a test "
-         "application to maje something with images " ));
+         "application to do something with images " ));
 }
 
 
@@ -686,14 +686,14 @@ void ImgHand::createActions()
   openAct->setStatusTip( tr("Open an existing image file") );
   connect( openAct, &QAction::triggered, this, &ImgHand::open );
 
-  saveAsAct = new QAction(QIcon(":/icons/filesaveas.png"), tr("&Save result"), this);
+  saveAsAct = new QAction( QIcon(":/icons/filesaveas.png"), tr("&Save result"), this);
   saveAsAct->setShortcut( tr("Ctrl+S") );
   saveAsAct->setStatusTip( tr("Save result image") );
   connect( saveAsAct, &QAction::triggered, this, &ImgHand::saveAs );
 
-  exitAct = new QAction(QIcon(":/icons/exit.png"),tr("E&xit"), this);
-  exitAct->setShortcut(tr("Ctrl+Q"));
-  exitAct->setStatusTip(tr("Exit the application"));
+  exitAct = new QAction( QIcon(":/icons/exit.png"),tr("E&xit"), this);
+  exitAct->setShortcut( tr("Ctrl+Q"));
+  exitAct->setStatusTip( tr("Exit the application"));
   connect( exitAct, &QAction::triggered, this, &ImgHand::close );
 
   // ------------------------------ Image --------------------------------------
@@ -710,7 +710,7 @@ void ImgHand::createActions()
 
   boxCount0Act = new QAction( QIcon(":/icons/boxcount0.png"), tr("Box&Count 0"), this );
   showInfoAct->setShortcut( tr("F9") );
-  boxCount0Act->setStatusTip( tr("Make boxcount analisys type 0") );
+  boxCount0Act->setStatusTip( tr("Make boxcount analysis type 0") );
   connect( boxCount0Act, &QAction::triggered, this, &ImgHand::boxCount0Slot );
 
   analyzeAct = new QAction( QIcon(":/icons/launch.png"), tr("&Analyze"), this );
@@ -718,11 +718,11 @@ void ImgHand::createActions()
   connect( analyzeAct, &QAction::triggered, this, &ImgHand::analyze );
 
   sobelAct = new QAction( QStringLiteral("&Sobel"), this );
-  sobelAct->setStatusTip( tr("Apply Sobel transormation") );
+  sobelAct->setStatusTip( tr("Apply Sobel transformation") );
   connect( sobelAct, &QAction::triggered, this, &ImgHand::sobelSlot );
 
-  aboutAct = new QAction(tr("&About"), this );
-  aboutAct->setStatusTip(tr("Show the application's About box") );
+  aboutAct = new QAction( tr("&About"), this );
+  aboutAct->setStatusTip( tr("Show the application's About box") );
   connect( aboutAct, &QAction::triggered, this, &ImgHand::about );
 
   aboutQtAct = new QAction( tr("About &Qt"), this );
@@ -731,7 +731,7 @@ void ImgHand::createActions()
 
   // TODO: tips, shortcuts, icons
   // ---------------------------- View ---------------------
-  viewZoomInAct = new QAction(QIcon(":/icons/view_zoomin.png"), tr("Zoom &In"), this );
+  viewZoomInAct = new QAction( QIcon(":/icons/view_zoomin.png"), tr("Zoom &In"), this );
   connect( viewZoomInAct, &QAction::triggered, this, &ImgHand::viewZoomIn );
   viewZoomInAct->setShortcut( QKeySequence::ZoomIn );
   viewZoomInAct->setStatusTip( tr("Zoom In image") );
@@ -761,7 +761,7 @@ void ImgHand::createActions()
   viewSourceAct->setShortcut( tr("Ctrl+2") );
   viewSourceAct->setStatusTip( tr("View source image") );
 
-  viewResultAct = new QAction(QIcon(":/icons/view_result.png"), tr("&Result"), this );
+  viewResultAct = new QAction( QIcon(":/icons/view_result.png"), tr("&Result"), this );
   connect( viewResultAct, &QAction::triggered, this, &ImgHand::viewResult );
   viewResultAct->setShortcut( tr("Ctrl+3") );
   viewResultAct->setStatusTip( tr("View Result Image") );
@@ -770,14 +770,14 @@ void ImgHand::createActions()
 
 void ImgHand::createMenus()
 {
-  fileMenu = menuBar()->addMenu(tr("&File"));
+  fileMenu = menuBar()->addMenu( tr("&File") );
   fileMenu->addAction( openAct );
   fileMenu->addSeparator();
   fileMenu->addAction( saveAsAct );
   fileMenu->addSeparator();
   fileMenu->addAction( exitAct );
 
-  imageMenu = menuBar()->addMenu(tr("&Image"));
+  imageMenu = menuBar()->addMenu( tr("&Image") );
   imageMenu->addAction( showInfoAct );
   imageMenu->addAction( makeBwAct );
   imageMenu->addAction( boxCount0Act );
@@ -786,7 +786,7 @@ void ImgHand::createMenus()
   imageMenu->addSeparator();
   imageMenu->addAction( analyzeAct );
 
-  viewMenu = menuBar()->addMenu(tr("&View"));
+  viewMenu = menuBar()->addMenu( tr("&View") );
   viewMenu->addAction( viewZoomInAct );
   viewMenu->addAction( viewZoomOutAct );
   viewMenu->addAction( viewZoomResetAct );
@@ -798,38 +798,38 @@ void ImgHand::createMenus()
 
   menuBar()->addSeparator();
 
-  helpMenu = menuBar()->addMenu(tr("&Help"));
+  helpMenu = menuBar()->addMenu( tr("&Help") );
   helpMenu->addAction( aboutAct );
   helpMenu->addAction( aboutQtAct );
 }
 
 void ImgHand::createToolBars()
 {
-  fileToolBar = addToolBar(tr("Main"));
-  fileToolBar->addAction(openAct);
+  fileToolBar = addToolBar( tr("Main") );
+  fileToolBar->addAction( openAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction(saveAsAct);
+  fileToolBar->addAction( saveAsAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction(viewZoomInAct);
-  fileToolBar->addAction(viewZoomOutAct);
-  fileToolBar->addAction(viewZoomResetAct);
-  fileToolBar->addAction(viewZoomFitAct);
-  fileToolBar->addAction(viewZoomSelAct);
+  fileToolBar->addAction( viewZoomInAct );
+  fileToolBar->addAction( viewZoomOutAct );
+  fileToolBar->addAction( viewZoomResetAct );
+  fileToolBar->addAction( viewZoomFitAct );
+  fileToolBar->addAction( viewZoomSelAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction(viewSourceAct);
-  fileToolBar->addAction(viewResultAct);
+  fileToolBar->addAction( viewSourceAct );
+  fileToolBar->addAction( viewResultAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction(showInfoAct);
-  fileToolBar->addAction(makeBwAct);
-  fileToolBar->addAction(boxCount0Act);
-  fileToolBar->addAction(analyzeAct);
+  fileToolBar->addAction( showInfoAct );
+  fileToolBar->addAction( makeBwAct );
+  fileToolBar->addAction( boxCount0Act );
+  fileToolBar->addAction( analyzeAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction(exitAct);
+  fileToolBar->addAction( exitAct );
 }
 
 void ImgHand::createStatusBar()

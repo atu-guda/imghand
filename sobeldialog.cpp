@@ -18,7 +18,6 @@ void SobelDialog::setupUi()
 
   dx_label = new QLabel( QStringLiteral("dx"), this );
   dx_label->setObjectName( QStringLiteral("dx_label") );
-
   gridLayout->addWidget( dx_label, 0, 0, 1, 1 );
 
   dx_cb = new QComboBox( this );
@@ -26,7 +25,6 @@ void SobelDialog::setupUi()
   dx_cb->addItem( QStringLiteral("1") );
   dx_cb->addItem( QStringLiteral("2") );
   dx_cb->addItem( QStringLiteral("3") );
-  dx_cb->setCurrentText( QString::number( d.dx ) );
   dx_cb->setObjectName( QStringLiteral("dx_cb") );
   gridLayout->addWidget( dx_cb, 0, 1, 1, 1 );
 
@@ -39,7 +37,6 @@ void SobelDialog::setupUi()
   dy_cb->addItem( QStringLiteral("1") );
   dy_cb->addItem( QStringLiteral("2") );
   dy_cb->addItem( QStringLiteral("3") );
-  dy_cb->setCurrentText( QString::number( d.dy ) );
   dy_cb->setObjectName( QStringLiteral("dy_cb") );
   gridLayout->addWidget( dy_cb, 1, 1, 1, 1 );
 
@@ -53,7 +50,6 @@ void SobelDialog::setupUi()
   ksize_cb->addItem( QStringLiteral("7")  );
   ksize_cb->addItem( QStringLiteral("1")  );
   ksize_cb->addItem( QStringLiteral("-1") );
-  ksize_cb->setCurrentText( QString::number( d.ksize ) );
   ksize_cb->setObjectName( QStringLiteral("ksize_cb") );
   gridLayout->addWidget( ksize_cb, 2, 1, 1, 1 );
 
@@ -62,7 +58,6 @@ void SobelDialog::setupUi()
   gridLayout->addWidget( scale_label, 3, 0, 1, 1 );
 
   scale_le = new QLineEdit( this );
-  scale_le->setText( QString::number( d.scale ) );
   scale_le->setObjectName( QStringLiteral("scale_le") );
   gridLayout->addWidget( scale_le, 3, 1, 1, 1 );
 
@@ -71,7 +66,6 @@ void SobelDialog::setupUi()
   gridLayout->addWidget( delta_label, 4, 0, 1, 1 );
 
   delta_le = new QLineEdit( this );
-  delta_le->setText( QString::number( d.delta ) );
   delta_le->setObjectName( QStringLiteral("delta_le") );
 
   gridLayout->addWidget( delta_le, 4, 1, 1, 1 );
@@ -82,7 +76,6 @@ void SobelDialog::setupUi()
 
   rescale_cb = new QCheckBox( this );
   rescale_cb->setObjectName( QStringLiteral("rescale_cb") );
-  rescale_cb->setChecked( d.rescale );
   gridLayout->addWidget( rescale_cb, 5, 1, 1, 1 );
 
   verticalLayout->addLayout( gridLayout );
@@ -100,10 +93,39 @@ void SobelDialog::setupUi()
   scale_label->setBuddy( scale_le );
   delta_label->setBuddy( delta_le );
 
-  QObject::connect( buttonBox, &QDialogButtonBox::accepted, this, &SobelDialog::accept );
-  QObject::connect( buttonBox, &QDialogButtonBox::rejected, this, &SobelDialog::reject );
+  btnRevert  = buttonBox->addButton( QStringLiteral("Revert"),   QDialogButtonBox::ActionRole );
+  btnDefault = buttonBox->addButton( QStringLiteral("Default"),  QDialogButtonBox::ResetRole  );
+
+  revert();
+
+  QObject::connect( buttonBox,  &QDialogButtonBox::accepted, this, &SobelDialog::accept );
+  QObject::connect( buttonBox,  &QDialogButtonBox::rejected, this, &SobelDialog::reject );
+  QObject::connect( btnRevert,  &QPushButton::pressed,       this, &SobelDialog::revert );
+  QObject::connect( btnDefault, &QPushButton::pressed,       this, &SobelDialog::setDefault );
 
   // QMetaObject::connectSlotsByName(this);
+}
+
+void SobelDialog::revert()
+{
+  if( !dx_cb ) {
+    return;
+  }
+  dx_cb->setCurrentText( QString::number( d.dx ) );
+  dy_cb->setCurrentText( QString::number( d.dy ) );
+  ksize_cb->setCurrentText( QString::number( d.ksize ) );
+  scale_le->setText( QString::number( d.scale ) );
+  delta_le->setText( QString::number( d.delta ) );
+  rescale_cb->setChecked( d.rescale );
+}
+
+void SobelDialog::setDefault()
+{
+  auto s = d;
+  SobelData defdata;
+  d = defdata;
+  revert();
+  d = s;
 }
 
 void SobelDialog::accept()
