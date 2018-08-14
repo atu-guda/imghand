@@ -85,7 +85,7 @@ ImgHand::ImgHand()
   view( new QGraphicsView( scene ) ),
   histo_0( 256, 0 ), histo_r( 256, 0.0 ), histo_c( 256, 1.0 )
 {
-  histo_0[0] = 1; histo_r[0] = 1.0; // fake save values
+  histo_0[0] = 1; histo_r[0] = 1.0; // fake safe values
   v_lnr.reserve( 32 ); v_lnN.reserve( 32 );
 
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
@@ -709,58 +709,61 @@ void ImgHand::createActions()
   //  -------------------------- File ------------------------------------
   openAct = new QAction( QIcon(":/icons/fileopen.png"), tr("&Open..."), this );
   openAct->setShortcut( tr("Ctrl+O") );
-  openAct->setStatusTip( tr("Open an existing image file") );
+  openAct->setToolTip( tr("Open an existing image file (Ctrl+O)") );
   connect( openAct, &QAction::triggered, this, &ImgHand::open );
 
   saveAsAct = new QAction( QIcon(":/icons/filesaveas.png"), tr("&Save result"), this);
   saveAsAct->setShortcut( tr("Ctrl+S") );
-  saveAsAct->setStatusTip( tr("Save result image") );
+  saveAsAct->setToolTip( tr("Save result image (Ctrl+S)") );
   connect( saveAsAct, &QAction::triggered, this, &ImgHand::saveAs );
 
   exitAct = new QAction( QIcon(":/icons/exit.png"),tr("E&xit"), this);
-  exitAct->setShortcut( tr("Ctrl+Q"));
-  exitAct->setStatusTip( tr("Exit the application"));
+  exitAct->setShortcut( tr("Ctrl+Q") );
+  exitAct->setToolTip( tr("Exit the application (Ctrl+Q)"));
   connect( exitAct, &QAction::triggered, this, &ImgHand::close );
 
   // ------------------------------ Image --------------------------------------
 
   showInfoAct = new QAction( QIcon(":/icons/info.png"), tr("&Image info"), this );
   showInfoAct->setShortcut( tr("Ctrl+I") );
-  showInfoAct->setStatusTip( tr("Image info") );
+  showInfoAct->setToolTip( tr("Image info (Ctrl+I)") );
   connect( showInfoAct, &QAction::triggered, this, &ImgHand::showInfo );
 
 
   restoreImageAct = new QAction( QStringLiteral("&Restore Image"), this );
-  restoreImageAct->setStatusTip( tr("Resore image") );
+  restoreImageAct->setShortcut( tr("Ctrl+Z") );
+  restoreImageAct->setToolTip( tr("Resore image (Ctrl+Z)") );
   connect( restoreImageAct, &QAction::triggered, this, &ImgHand::restoreImage );
 
   makeBwAct = new QAction( QIcon(":/icons/makebw.png"), tr("make &B/W"), this );
-  makeBwAct->setStatusTip( tr("Make black/white image with level") );
+  makeBwAct->setShortcut( tr("F5") );
+  makeBwAct->setToolTip( tr("Make black/white image with level (F5)") );
   connect( makeBwAct, &QAction::triggered, this, &ImgHand::makeBwSlot );
 
-  makeBwAdaAct = new QAction( tr("&Adaptive B/W"), this );
-  makeBwAdaAct->setStatusTip( tr("Make black/white by adaptive algorithm") );
+  makeBwAdaAct = new QAction( QIcon(":/icons/makebw_a.png"),  tr("&Adaptive B/W"), this );
+  makeBwAdaAct->setShortcut( tr("F6") );
+  makeBwAdaAct->setToolTip( tr("Make black/white by adaptive algorithm (F6)") );
   connect( makeBwAdaAct, &QAction::triggered, this, &ImgHand::makeBwAdaSlot );
 
   boxCount0Act = new QAction( QIcon(":/icons/boxcount0.png"), tr("Box&Count 0"), this );
-  showInfoAct->setShortcut( tr("F9") );
-  boxCount0Act->setStatusTip( tr("Make boxcount analysis type 0") );
+  boxCount0Act->setShortcut( tr("F9") );
+  boxCount0Act->setToolTip( tr("Make boxcount analysis type 0 (F9)") );
   connect( boxCount0Act, &QAction::triggered, this, &ImgHand::boxCount0Slot );
 
   analyzeAct = new QAction( QIcon(":/icons/launch.png"), tr("&Analyze"), this );
-  analyzeAct->setStatusTip( tr("Analyze image") );
+  analyzeAct->setToolTip( tr("Analyze image (nothing for now)") );
   connect( analyzeAct, &QAction::triggered, this, &ImgHand::analyze );
 
   sobelAct = new QAction( QStringLiteral("&Sobel"), this );
-  sobelAct->setStatusTip( tr("Apply Sobel transformation") );
+  sobelAct->setToolTip( tr("Apply Sobel transformation") );
   connect( sobelAct, &QAction::triggered, this, &ImgHand::sobelSlot );
 
   aboutAct = new QAction( tr("&About"), this );
-  aboutAct->setStatusTip( tr("Show the application's About box") );
+  aboutAct->setToolTip( tr("Show the application's About box") );
   connect( aboutAct, &QAction::triggered, this, &ImgHand::about );
 
   aboutQtAct = new QAction( tr("About &Qt"), this );
-  aboutQtAct->setStatusTip( tr("Show the Qt library's About box") );
+  aboutQtAct->setToolTip( tr("Show the Qt library's About box") );
   connect( aboutQtAct, &QAction::triggered, qApp, &QApplication::aboutQt );
 
   // TODO: tips, shortcuts, icons
@@ -768,37 +771,37 @@ void ImgHand::createActions()
   viewZoomInAct = new QAction( QIcon(":/icons/view_zoomin.png"), tr("Zoom &In"), this );
   connect( viewZoomInAct, &QAction::triggered, this, &ImgHand::viewZoomIn );
   viewZoomInAct->setShortcut( QKeySequence::ZoomIn );
-  viewZoomInAct->setStatusTip( tr("Zoom In image") );
+  viewZoomInAct->setToolTip( tr("Zoom In image (Ctrl++)") );
 
   viewZoomOutAct = new QAction( QIcon(":/icons/view_zoomout.png"), tr("Zoom &Out"), this );
   connect( viewZoomOutAct, &QAction::triggered, this, &ImgHand::viewZoomOut );
   viewZoomOutAct->setShortcut( QKeySequence::ZoomOut );
-  viewZoomOutAct->setStatusTip( tr("Zoom Out image") );
+  viewZoomOutAct->setToolTip( tr("Zoom Out image (Ctrl+-)") );
 
   viewZoomResetAct = new QAction( QIcon(":/icons/view_zoomreset.png"), tr("&1:1"), this );
   connect( viewZoomResetAct, &QAction::triggered, this, &ImgHand::viewZoomReset );
   viewZoomResetAct->setShortcut( tr("Ctrl+1") );
-  viewZoomResetAct->setStatusTip( tr("Set zoom to 1:1") );
+  viewZoomResetAct->setToolTip( tr("Set zoom to 1:1 (Ctrl+1)") );
 
   viewZoomFitAct = new QAction( QIcon(":/icons/view_zoomfit.png"), tr("&Fit"), this );
   connect( viewZoomFitAct, &QAction::triggered, this, &ImgHand::viewZoomFit );
   viewZoomFitAct->setShortcut( tr("Ctrl+0") );
-  viewZoomFitAct->setStatusTip( tr("Fit image to window") );
+  viewZoomFitAct->setToolTip( tr("Fit image to window (Ctrl+0)") );
 
   viewZoomSelAct = new QAction( QIcon(":/icons/view_zoomsel.png"), tr("&Selection"), this );
   connect( viewZoomSelAct, &QAction::triggered, this, &ImgHand::viewZoomSel );
   viewZoomSelAct->setShortcut( tr("Ctrl+5") );
-  viewZoomSelAct->setStatusTip( tr("Scale to selection" ));
+  viewZoomSelAct->setToolTip( tr("Scale to selection (Ctrl+5)" ));
 
   viewSourceAct = new QAction( QIcon(":/icons/view_source.png"), tr("So&urce"), this );
   connect( viewSourceAct, &QAction::triggered, this, &ImgHand::viewSource );
   viewSourceAct->setShortcut( tr("Ctrl+2") );
-  viewSourceAct->setStatusTip( tr("View source image") );
+  viewSourceAct->setToolTip( tr("View source image (Ctrl+2)") );
 
   viewResultAct = new QAction( QIcon(":/icons/view_result.png"), tr("&Result"), this );
   connect( viewResultAct, &QAction::triggered, this, &ImgHand::viewResult );
   viewResultAct->setShortcut( tr("Ctrl+3") );
-  viewResultAct->setStatusTip( tr("View Result Image") );
+  viewResultAct->setToolTip( tr("View Result Image (Ctrl+3)") );
 
 }
 
@@ -862,6 +865,7 @@ void ImgHand::createToolBars()
 
   fileToolBar->addAction( showInfoAct );
   fileToolBar->addAction( makeBwAct );
+  fileToolBar->addAction( makeBwAdaAct );
   fileToolBar->addAction( boxCount0Act );
   fileToolBar->addAction( analyzeAct );
   fileToolBar->addSeparator();
