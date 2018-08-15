@@ -173,14 +173,17 @@ void ImgHand::loadFile( const QString &fileName )
 
   loaded = true;
   setCurrentFile( fileName );
-  stat_lbl->setText( "loaded" );
   scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
+  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
+    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
+    QStringLiteral( " loaded" );
+  stat_lbl->setText( s );
   restoreImage();
 
   makeBW( histo_auto ); // pi2 added here
 
   QApplication::restoreOverrideCursor();
-  statusBar()->showMessage( tr("File loaded"), 2000 );
+  // statusBar()->showMessage( tr("File loaded"), 1000 );
 }
 
 void ImgHand::restoreImage()
@@ -252,7 +255,10 @@ void ImgHand::makeBW( int level )
   }
   imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   updateDstItem();
-  stat_lbl->setText( "B/W recalculated" );
+  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
+    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
+    QStringLiteral( " B/W recalculated: level " ) % QString::number( level );
+  stat_lbl->setText( s );
 }
 
 void ImgHand::makeBwSlot()
@@ -282,12 +288,24 @@ void ImgHand::makeBwAdaSlot()
   Mat mi, mo;
   QImage img_t = img.copy();
   img2mat( mi );
-  adaptiveThreshold( mi, mo, 255, ADAPTIVE_THRESH_GAUSSIAN_C,  THRESH_BINARY, 51, 1 );
+  bool ok;
+  int r = QInputDialog::getInt( this, "Input", "Input neibour size", 101, 3, 2048, 2, &ok );
+  if( !ok ) {
+    return;
+  }
+  r |= 1; // 3,5,7...
+
+  //                 src dst max   method                      type           size C
+  adaptiveThreshold( mi, mo, 255, ADAPTIVE_THRESH_GAUSSIAN_C,  THRESH_BINARY, r,   1 );
   mat2img( mo );
   img = img_t;
+
   updateSrcItem();
   updateDstItem();
-  stat_lbl->setText( "B/W recalculated" );
+  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
+    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
+    QStringLiteral( " B/W adaptive R= " ) % QString::number( r );
+  stat_lbl->setText( s );
   viewResult();
 }
 
@@ -397,8 +415,9 @@ void ImgHand::boxCount0Slot()
   while( pic_w >= 32 ) {
     pic_w = xi.width(); pic_h = xi.height();
 
-    QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
-    xi.save( cfn, "PNG" );
+    // TODO: config.debug
+    // QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
+    // xi.save( cfn, "PNG" );
 
     cnbp = count_bits( xi, true );
     double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
@@ -424,10 +443,11 @@ void ImgHand::boxCount0Slot()
   gsl_fit_linear(  v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size(),
                    &c0, &c1, &cov00, &cov01, &cov11, &sumq );
 
-  cout << "Corr: " << corr << " c0: " << c0 << " c1: " << c1
+  cout << "File: \"" << curFile.toLocal8Bit().data()
+       << "\" Corr: " << corr << " c0: " << c0 << " c1: " << c1
        << " cov00: " << cov00 << " cov01: " << cov01 << " cov11: " << cov11
        << " sumq: " << sumq << endl;
-  QString s = QString( "C1: %1, \nCorr: %2" ).arg( -c1 ).arg( corr );
+  QString s = QString( "File: \"%1\" C1: %2, Corr: %3" ).arg( curFile ).arg( -c1 ).arg( corr );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
@@ -455,6 +475,7 @@ void ImgHand::boxCount0Slot()
   lay->addWidget( chartView );
 
   QLabel *l1 = new QLabel( s, dia );
+  l1->setTextInteractionFlags( Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard );
   lay->addWidget( l1 );
 
   QPushButton *done = new QPushButton( "Done", dia );
@@ -468,7 +489,7 @@ void ImgHand::boxCount0Slot()
   dia->exec();
   delete dia;
 
-  stat_lbl->setText( QString::number( -c1 ) );
+  stat_lbl->setText( curFile + " " + QString::number( -c1 ) );
 }
 
 void ImgHand::img2mat( Mat &m ) const
@@ -877,6 +898,7 @@ void ImgHand::createStatusBar()
 {
   statBar = statusBar();
   statBar->addWidget( (stat_lbl =  new QLabel("x")) );
+  stat_lbl->setTextInteractionFlags( Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard );
   // statBar->addWidget( (labelSizeU =  new QLabel("(0x0).(0x0)")) );
   // statBar->showMessage(tr("Ready"));
   //statusBar()->
@@ -884,18 +906,18 @@ void ImgHand::createStatusBar()
 
 // void ImgHand::readSettings()
 // {
-//   QSettings settings("Trolltech", "ImgHand");
-//   QPoint pos = settings.value("pos", QPoint(100, 100)).toPoint();
-//   QSize size = settings.value("size", QSize(800, 600)).toSize();
+//   QSettings settings( "atu", "ImgHand" );
+//   QPoint pos = settings.value( "pos", QPoint(100, 100) ).toPoint();
+//   QSize size = settings.value( "size", QSize(800, 600) ).toSize();
 //   resize(size);
 //   move(pos);
 // }
 
 // void ImgHand::writeSettings()
 // {
-//   QSettings settings("Trolltech", "ImgHand");
-//   settings.setValue("pos", pos());
-//   settings.setValue("size", size());
+//   QSettings settings( "atu", "ImgHand" );
+//   settings.setValue( "pos", pos() );
+//   settings.setValue( "size", size() );
 // }
 
 
@@ -906,7 +928,7 @@ void ImgHand::setCurrentFile(const QString &fileName)
 
   QString shownName;
 
-  if (curFile.isEmpty()) {
+  if( curFile.isEmpty() ) {
     shownName = "empty";
   }  else {
     shownName = strippedName( curFile );
