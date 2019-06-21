@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018 by Anton Guda                                      *
+ *   Copyright (C) 2018-2019 by Anton Guda                                 *
  *   atu@nmetau.edu.ua                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -372,10 +372,10 @@ void ImgHand::showInfo()
   chart->addSeries( points );
   // chart->setTitle( "Histogram" );
   chart->createDefaultAxes();
-  auto ax_x = chart->axisX();
+  auto ax_x = chart->axes( Qt::Horizontal ).back();
   ax_x->setRange( 0, 256 );
   ax_x->setLinePenColor( Qt::black );
-  chart->axisY()->setLabelsVisible( false );
+  chart->axes( Qt::Vertical ).back()->setLabelsVisible( false );
   chart->legend()->setVisible( false );
   QChartView *chartView = new QChartView( chart );
   chartView->setRenderHint( QPainter::Antialiasing );
@@ -466,7 +466,7 @@ void ImgHand::boxCount0Slot()
   chart->addSeries( ser0 );
   chart->addSeries( ser1 );
   chart->createDefaultAxes();
-  auto ax_x = chart->axisX();
+  auto ax_x = chart->axes( Qt::Horizontal ).back();
   // ax_x->setRange( 0, 256 );
   ax_x->setLinePenColor( Qt::black );
   chart->legend()->setVisible( false );
