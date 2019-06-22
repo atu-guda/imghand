@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018 by Anton Guda                                      *
+ *   Copyright (C) 2018-2019 by Anton Guda                                 *
  *   atu@nmetau.edu.ua                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,16 +31,15 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
-#include <opencv2/core.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/highgui.hpp>
 
 class QAction;
 class QMenu;
 class QImage;
 class QLabel;
 class QScrollArea;
+
+#define QSL(x) QStringLiteral(x)
+#define QSN(x) QString::number(x)
 
 
 class ImgHand : public QMainWindow
@@ -91,8 +90,6 @@ private:
       QString strippedName( const QString &fullFileName );
       void updateSrcItem();
       void updateDstItem();
-      void img2mat( cv::Mat &m ) const;
-      void mat2img( const cv::Mat &m );
 
       QImage img;    //* source image
       QImage img_s;  //* saved image

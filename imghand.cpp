@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include <algorithm>
 #include <iostream>
@@ -50,6 +50,11 @@
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_fit.h>
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+// #include <opencv2/highgui.hpp>
+
 
 #include "imghand.h"
 #include "sobeldialog.h"
@@ -58,6 +63,9 @@ using namespace std;
 using namespace QtCharts;
 
 using namespace cv;
+
+void img2mat( const QImage &img, Mat &m );
+void mat2img( const Mat &m, QImage &img );
 
 // number of '1' bits in byte
 static const int bit_tab[256] = {
@@ -174,9 +182,9 @@ void ImgHand::loadFile( const QString &fileName )
   loaded = true;
   setCurrentFile( fileName );
   scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
-  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
-    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
-    QStringLiteral( " loaded" );
+  QString s = QSL( "File\"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.width() ) %
+    QSL( " loaded" );
   stat_lbl->setText( s );
   restoreImage();
 
@@ -204,9 +212,10 @@ void ImgHand::calcHisto()
   n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
   uchar *d = img.bits();
   histo_0.assign( 256, 0 );
-  for( int i=0; i<n_pix; ++i, ++d ) {
+  for( int i=0; i<n_pix; ++i, ++d ) { // count raw hystogramm data
     ++histo_0[*d];
   }
+
   double c = 0;
   histo_05p = histo_50p = histo_95p = -1; // flag: not set
   histo_max = 0;
@@ -229,6 +238,7 @@ void ImgHand::calcHisto()
       v_max = v; histo_max = i;
     }
   }
+
   histo_auto = histo_50p;
   if( ( histo_95p - histo_50p ) < 5 || ( histo_50p - histo_05p ) < 5 ) {
     if( ( histo_95p - histo_05p ) > 4 ) {
@@ -255,9 +265,9 @@ void ImgHand::makeBW( int level )
   }
   imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   updateDstItem();
-  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
-    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
-    QStringLiteral( " B/W recalculated: level " ) % QString::number( level );
+  QString s = QSL( "File\"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.width() ) %
+    QSL( " B/W recalculated: level " ) % QSN( level );
   stat_lbl->setText( s );
 }
 
@@ -267,10 +277,10 @@ void ImgHand::makeBwSlot()
     return;
   }
   QString lbl = " p05: "
-        % QString::number( histo_05p ) + ";  p50: "
-        % QString::number( histo_50p ) + ";  p95: "
-        % QString::number( histo_95p ) + ";  p_max: "
-        % QString::number( histo_max ) ;
+        % QSN( histo_05p ) + ";  p50: "
+        % QSN( histo_50p ) + ";  p95: "
+        % QSN( histo_95p ) + ";  p_max: "
+        % QSN( histo_max ) ;
   bool ok;
   int level = QInputDialog::getInt( this, "Input white level", lbl, histo_auto, -255, 255, 1, &ok );
   if( ok ) {
@@ -285,9 +295,7 @@ void ImgHand::makeBwAdaSlot()
   if( !loaded ) {
     return;
   }
-  Mat mi, mo;
-  QImage img_t = img.copy();
-  img2mat( mi );
+
   bool ok;
   int r = QInputDialog::getInt( this, "Input", "Input neibour size", 101, 3, 2048, 2, &ok );
   if( !ok ) {
@@ -295,16 +303,24 @@ void ImgHand::makeBwAdaSlot()
   }
   r |= 1; // 3,5,7...
 
+  Mat mi, mo;
+  QImage img_t = img.copy();
+  img2mat( img, mi );
+
   //                 src dst max   method                      type           size C
   adaptiveThreshold( mi, mo, 255, ADAPTIVE_THRESH_GAUSSIAN_C,  THRESH_BINARY, r,   1 );
-  mat2img( mo );
-  img = img_t;
+  mat2img( mo, img );
 
+  calcHisto();
+  makeBW( histo_auto ); // pi2 added here
+
+  img = img_t; // restore original
+  calcHisto();
   updateSrcItem();
-  updateDstItem();
-  QString s = QStringLiteral( "File\"" ) % curFile % QStringLiteral( "\" " ) %
-    QString::number( img_s.width() ) % QStringLiteral( "x" ) % QString::number( img_s.width() ) %
-    QStringLiteral( " B/W adaptive R= " ) % QString::number( r );
+
+  QString s = QSL( "File\"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.width() ) %
+    QSL( " B/W adaptive R= " ) % QSN( r );
   stat_lbl->setText( s );
   viewResult();
 }
@@ -336,17 +352,16 @@ void ImgHand::showInfo()
   if( !loaded ) {
     return;
   }
-  QString s;
-  s = curFile + "\n "
-        + QString::number( img.width() ) + " x "
-        + QString::number( img.height() ) + ";  bpp: "
-        + QString::number( img.depth() )+ ";  bpl: "
-        + QString::number( img.bytesPerLine() ) + ";  n_pix: "
-        + QString::number( n_pix ) + ";  \n p05: "
-        + QString::number( histo_05p ) + ";  p50: "
-        + QString::number( histo_50p ) + ";  p95: "
-        + QString::number( histo_95p ) + ";  p_max: "
-        + QString::number( histo_max ) + ";";
+  QString s = curFile               % QSL( "\n " )
+        % QSN( img.width() )        % QSL( " x " )
+        % QSN( img.height() )       % QSL( ";  bpp: " )
+        % QSN( img.depth() )        % QSL( ";  bpl: " )
+        % QSN( img.bytesPerLine() ) % QSL( ";  n_pix: " )
+        % QSN( n_pix )              % QSL( ";  \n p05: " )
+        % QSN( histo_05p )          % QSL( ";  p50: " )
+        % QSN( histo_50p )          % QSL( ";  p95: " )
+        % QSN( histo_95p )          % QSL( ";  p_max: " )
+        % QSN( histo_max )          % QSL( ";" );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
@@ -489,38 +504,9 @@ void ImgHand::boxCount0Slot()
   dia->exec();
   delete dia;
 
-  stat_lbl->setText( curFile + " " + QString::number( -c1 ) );
+  stat_lbl->setText( curFile + " " + QSN( -c1 ) );
 }
 
-void ImgHand::img2mat( Mat &m ) const
-{
-  auto h = img.height();
-  auto w = img.width();
-  auto bpl = img.bytesPerLine();
-  Mat mat( h, w, CV_8UC1 );
-  for( int i=0; i<h; ++i ) {
-    memcpy( mat.ptr( i ), img.scanLine( i ), bpl );
-  }
-  m = mat;
-  // namedWindow( "img2mat", WINDOW_AUTOSIZE );
-  // imshow( "img2mat", m );
-}
-
-void ImgHand::mat2img( const Mat &m )
-{
-  // namedWindow( "mat2img", WINDOW_AUTOSIZE );
-  // imshow( "mat2img", m );
-
-  img = QImage( m.cols, m.rows, QImage::Format_Grayscale8 );
-  auto bpl = img.bytesPerLine();
-  for( int i=0; i<m.rows; ++i ) {
-    memcpy( img.scanLine( i ), m.ptr( i ), bpl );
-  }
-  updateSrcItem();
-  calcHisto();
-  makeBW( histo_auto ); // pi2 added here
-  viewSource();
-}
 
 void ImgHand::sobelSlot()
 {
@@ -534,7 +520,7 @@ void ImgHand::sobelSlot()
   }
 
   Mat mat;
-  img2mat( mat );
+  img2mat( img, mat );
 
   Mat mat1; // = mat;
 
@@ -549,11 +535,16 @@ void ImgHand::sobelSlot()
   }
 
   if( ! estr.isEmpty() ) {
-    QMessageBox::warning( this, QStringLiteral("Error"), estr );
+    QMessageBox::warning( this, QSL("Error"), estr );
     return;
   }
 
-  mat2img( mat1 );
+  mat2img( mat1, img );
+
+  updateSrcItem();
+  calcHisto();
+  makeBW( histo_auto ); // pi2 added here
+  viewSource();
 
   // Mat ker = ( Mat_<char>( 3, 3 ) <<
   //      0, -1,  0,
@@ -568,17 +559,18 @@ void ImgHand::sobelSlot()
 bool halfImageBW( const QImage &s, QImage &d )
 {
   if( s.format() != QImage::Format_Mono ) {
+    cerr << "Error: bad image format" << endl;
     return false;
   }
-  unsigned w = s.width(), h = s.height();
-  unsigned w1 = ( w >> 1 ) & ~0x07,   h1 = h >> 1;
+  const unsigned w = s.width(), h = s.height();
+  const unsigned w1 = ( w >> 1 ) & ~0x07,   h1 = h >> 1;
   QImage z( w1, h1, QImage::Format_Mono );
   bool invers = qRed( s.color( 0 )) != 0; // 0 may be white!
 
   for( unsigned dline=0; dline<h1; ++dline ) {
     uchar *d0 = z.scanLine( dline );
-    unsigned sline0 = dline  * 2;
-    unsigned sline1 = sline0 + 1;
+    const unsigned sline0 = dline  * 2;
+    const unsigned sline1 = sline0 + 1;
     const uchar *s0 = s.scanLine( sline0 );
     const uchar *s1 = s.scanLine( sline1 );
     for( unsigned dcol = 0; dcol < w1/8; ++dcol ) {
@@ -657,8 +649,8 @@ void ImgHand::showData()
   //   dpoints cps = vdp[i];
   //   for( int j=0; j<cps.getN(); ++j ) {
   //     dpoint cp = cps[j];
-  //     QTableWidgetItem *x = new QTableWidgetItem( QString::number( cp.x ) );
-  //     QTableWidgetItem *y = new QTableWidgetItem( QString::number( cp.y ) );
+  //     QTableWidgetItem *x = new QTableWidgetItem( QSN( cp.x ) );
+  //     QTableWidgetItem *y = new QTableWidgetItem( QSN( cp.y ) );
   //     tableWidget->setItem( i, 1+2*j, x );
   //     tableWidget->setItem( i, 2+2*j, y );
   //   }
@@ -751,7 +743,7 @@ void ImgHand::createActions()
   connect( showInfoAct, &QAction::triggered, this, &ImgHand::showInfo );
 
 
-  restoreImageAct = new QAction( QStringLiteral("&Restore Image"), this );
+  restoreImageAct = new QAction( QSL("&Restore Image"), this );
   restoreImageAct->setShortcut( tr("Ctrl+Z") );
   restoreImageAct->setToolTip( tr("Resore image (Ctrl+Z)") );
   connect( restoreImageAct, &QAction::triggered, this, &ImgHand::restoreImage );
@@ -775,7 +767,7 @@ void ImgHand::createActions()
   analyzeAct->setToolTip( tr("Analyze image (nothing for now)") );
   connect( analyzeAct, &QAction::triggered, this, &ImgHand::analyze );
 
-  sobelAct = new QAction( QStringLiteral("&Sobel"), this );
+  sobelAct = new QAction( QSL("&Sobel"), this );
   sobelAct->setToolTip( tr("Apply Sobel transformation") );
   connect( sobelAct, &QAction::triggered, this, &ImgHand::sobelSlot );
 
@@ -946,7 +938,7 @@ ImgHand::~ImgHand()
 {
 }
 
-// --------------------- bits calculation functions
+// --------------------- bits and image calculation functions
 
 // works only if width is a multiple of 8
 uint64_t count_bits( const QImage &img, bool count0 )
@@ -975,5 +967,30 @@ uint64_t count_bits( const QImage &img, bool count0 )
   return nbits;
 }
 
+void img2mat( const QImage &img, Mat &m )
+{
+  auto h = img.height();
+  auto w = img.width();
+  auto bpl = img.bytesPerLine();
+  Mat mat( h, w, CV_8UC1 );
+  for( int i=0; i<h; ++i ) {
+    memcpy( mat.ptr( i ), img.scanLine( i ), bpl );
+  }
+  m = mat;
+  // namedWindow( "img2mat", WINDOW_AUTOSIZE );
+  // imshow( "img2mat", m );
+}
 
+
+void mat2img( const Mat &m, QImage &img )
+{
+  // namedWindow( "mat2img", WINDOW_AUTOSIZE );
+  // imshow( "mat2img", m );
+
+  img = QImage( m.cols, m.rows, QImage::Format_Grayscale8 );
+  auto bpl = img.bytesPerLine();
+  for( int i=0; i<m.rows; ++i ) {
+    memcpy( img.scanLine( i ), m.ptr( i ), bpl );
+  }
+}
 
