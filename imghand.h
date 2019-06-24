@@ -49,6 +49,7 @@ class ImgHand : public QMainWindow
 public:
       ImgHand();
       ~ImgHand();
+      void loadFile( const QString &fileName );
 
 protected:
       // void closeEvent(QCloseEvent *event);
@@ -78,12 +79,12 @@ private slots:
 
       void about();
 
+
 private:
       void createActions();
       void createMenus();
       void createToolBars();
       void createStatusBar();
-      void loadFile( const QString &fileName );
       void calcHisto();
       void makeBW( int level = 128 );
       void setCurrentFile( const QString &fileName );
@@ -154,6 +155,10 @@ private:
 
 bool halfImageBW( const QImage &s, QImage &d );
 uint64_t count_bits( const QImage &img, bool count0 = false );
+
+// global data
+extern int global_debug;
+extern int batch_proc;
 
 #endif
 

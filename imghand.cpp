@@ -25,7 +25,9 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+
 #include <QtGui>
+#include <QtDebug>
 
 #include <QApplication>
 #include <QImage>
