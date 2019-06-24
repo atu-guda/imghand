@@ -363,7 +363,8 @@ void ImgHand::showInfo()
         % QSN( histo_05p )          % QSL( ";  p50: " )
         % QSN( histo_50p )          % QSL( ";  p95: " )
         % QSN( histo_95p )          % QSL( ";  p_max: " )
-        % QSN( histo_max )          % QSL( ";" );
+        % QSN( histo_max )          % QSL( ";  p_auto:" )
+        % QSN( histo_auto )         % QSL( ";" );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
@@ -382,23 +383,42 @@ void ImgHand::showInfo()
   points->append( histo_05p, 0 );
   points->append( histo_50p, 0 );
   points->append( histo_95p, 0 );
-  points->append( histo_max, 0 );
+
+  QScatterSeries *points1 = new QScatterSeries();
+  points1->setMarkerShape( QScatterSeries::MarkerShapeCircle );
+  points1->setMarkerSize( 5.0 );
+  points1->setColor( Qt::green );
+  points1->append( histo_max, 0 );
+
+  QScatterSeries *points2 = new QScatterSeries();
+  points2->setMarkerShape( QScatterSeries::MarkerShapeCircle );
+  points2->setMarkerSize( 7.0 );
+  points2->setColor( Qt::blue );
+  points2->append( histo_auto, 0 );
 
   QChart *chart = new QChart;
   chart->addSeries( series );
-  chart->addSeries( points );
+  chart->addSeries( points  );
+  chart->addSeries( points1 );
+  chart->addSeries( points2 );
+
   // chart->setTitle( "Histogram" );
   chart->createDefaultAxes();
   auto ax_x = chart->axes( Qt::Horizontal ).back();
   ax_x->setRange( 0, 256 );
   ax_x->setLinePenColor( Qt::black );
-  chart->axes( Qt::Vertical ).back()->setLabelsVisible( false );
+  auto ax_y = chart->axes( Qt::Vertical ).back();
+  ax_y->setLabelsVisible( true );
   chart->legend()->setVisible( false );
+
   QChartView *chartView = new QChartView( chart );
   chartView->setRenderHint( QPainter::Antialiasing );
   lay->addWidget( chartView );
 
+
   QLabel *l1 = new QLabel( s, dia );
+  l1->setTextInteractionFlags( Qt::TextSelectableByMouse
+      | Qt::LinksAccessibleByKeyboard | Qt::TextSelectableByKeyboard );
   lay->addWidget( l1 );
 
   QPushButton *done = new QPushButton( "Done", dia );
@@ -410,6 +430,16 @@ void ImgHand::showInfo()
   dia->resize( 768, 500 );
 
   dia->exec();
+
+  // TODO: sepatate action
+  QPixmap chart_pix( chartView->size() );
+  QPainter pa_t( &chart_pix );
+  chartView->render( &pa_t );
+  QFileInfo fi( curFile );
+  QString hy_file = fi.baseName() + QSL("_hysto.png");
+  qWarning() << "hy_file: \"" << hy_file << "\"";
+  chart_pix.save( hy_file, "PNG" );
+
   delete dia;
 }
 

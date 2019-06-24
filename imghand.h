@@ -104,7 +104,7 @@ private:
       QString curFile;
       bool loaded = false;
       int n_pix = 256;             //* fake
-      int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128;;
+      int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128;
       std::vector<int>    histo_0; //* initial counts
       std::vector<double> histo_r; //* relative counts
       std::vector<double> histo_c; //* cumulative counts
