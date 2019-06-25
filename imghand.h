@@ -47,6 +47,17 @@ namespace cv {
 
 // misc image and bits related funcs
 
+struct ImgData {
+  ImgData();
+  unsigned n_pix = 256;      //* fake
+  int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128, u_level = 128;
+  double d1 = 0;   //* calculated fractal dimension
+  double corr = 0; //* correcation coeff
+  std::vector<double> histo_r; //* relative counts
+  std::vector<double> v_lnr, v_lnN;
+};
+
+void makeBWImage( const QImage &img, QImage &dst, int level );
 bool halfImageBW( const QImage &s, QImage &d );
 uint64_t count_bits( const QImage &img, bool count0 = false );
 void img2mat( const QImage &img, cv::Mat &m );
@@ -117,10 +128,11 @@ private:
 
       QString curFile;
       bool loaded = false;
-      int n_pix = 256;             //* fake
-      int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128;
-      std::vector<double> histo_r; //* relative counts
-      std::vector<double> v_lnr, v_lnN;
+      ImgData ida;
+      // unsigned n_pix = 256;             //* fake
+      // int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128;
+      // std::vector<double> histo_r; //* relative counts
+      // std::vector<double> v_lnr, v_lnN;
 
       // =================== User Interface =================
       QStatusBar *statBar;

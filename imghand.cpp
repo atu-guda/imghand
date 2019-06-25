@@ -68,14 +68,18 @@ static const int bit_tab[256] = {
   4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
+ImgData::ImgData()
+{
+  histo_r.assign( 256, 0.0 );
+  histo_r[0] = 1.0;
+  v_lnr.reserve( 32 );
+  v_lnN.reserve( 32 );
+}
 
 ImgHand::ImgHand()
   : scene( new QGraphicsScene( this ) ),
-  view( new QGraphicsView( scene ) ),
-  histo_r( 256, 0.0 )
+  view( new QGraphicsView( scene ) )
 {
-  histo_r[0] = 1.0; // fake safe values
-  v_lnr.reserve( 32 ); v_lnN.reserve( 32 );
 
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
@@ -177,10 +181,9 @@ void ImgHand::loadFile( const QString &fileName )
 
   restoreImage();
 
-  makeBW( histo_auto ); // pi2 added here
+  makeBW( ida.histo_auto ); // pi2 added here
 
   QApplication::restoreOverrideCursor();
-  // statusBar()->showMessage( tr("File loaded"), 1000 );
 }
 
 void ImgHand::restoreImage()
@@ -198,63 +201,53 @@ void ImgHand::restoreImage()
 
 void ImgHand::calcHisto()
 {
-  n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
+  ida.n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
   uint8_t *d = img.bits();
   vector<int>  histo_0( 256, 0 );
 
-  for( int i=0; i<n_pix; ++i, ++d ) { // count raw hystogramm data
+  for( unsigned i=0; i<ida.n_pix; ++i, ++d ) { // count raw histogramm data
     ++histo_0[*d];
   }
 
   vector<double> histo_c( 256, 0.0 );
   double c = 0;
-  histo_05p = histo_50p = histo_95p = -1; // flag: not set
-  histo_max = 0;
+  ida.histo_05p = ida.histo_50p = ida.histo_95p = -1; // flag: not set
+  ida.histo_max = 0;
   double v_max = -1;
   for( int i=0; i<256; ++i ) {
-    double v   = (double)histo_0[i] / n_pix;
-    histo_r[i] = v;
+    double v   = (double)histo_0[i] / ida.n_pix;
+    ida.histo_r[i] = v;
     c += v;
     histo_c[i] = c;
-    if( histo_05p < 0 && c >= 0.05 ) {
-      histo_05p = i;
+    if( ida.histo_05p < 0 && c >= 0.05 ) {
+      ida.histo_05p = i;
     }
-    if( histo_50p < 0 && c >= 0.5  ) {
-      histo_50p = i;
+    if( ida.histo_50p < 0 && c >= 0.5  ) {
+      ida.histo_50p = i;
     }
-    if( histo_95p < 0 && c >= 0.95  ) {
-      histo_95p = i;
+    if( ida.histo_95p < 0 && c >= 0.95  ) {
+      ida.histo_95p = i;
     }
     if( v > v_max ) {
-      v_max = v; histo_max = i;
+      v_max = v; ida.histo_max = i;
     }
   }
 
-  histo_auto = histo_50p;
-  if( ( histo_95p - histo_50p ) < 5 || ( histo_50p - histo_05p ) < 5 ) {
-    if( ( histo_95p - histo_05p ) > 4 ) {
-      histo_auto = ( histo_95p + histo_05p ) / 2;
+  ida.histo_auto = ida.histo_50p;
+  if( ( ida.histo_95p - ida.histo_50p ) < 5 || ( ida.histo_50p - ida.histo_05p ) < 5 ) {
+    if( ( ida.histo_95p - ida.histo_05p ) > 4 ) {
+      ida.histo_auto = ( ida.histo_95p + ida.histo_05p ) / 2;
     } else {
-      histo_auto = 127;
+      ida.histo_auto = 127;
     }
   }
 }
 
 void ImgHand::makeBW( int level )
 {
-  QImage i0 = img.copy();
-  uint8_t lev = abs( level );
-  bool invers = level < 0;
-  uint8_t black_lev = 0, white_lev = 255;
-  if( invers ) {
-    black_lev = 255; white_lev = 0;
-  }
+  makeBWImage( img, imgx, level );
+  ida.u_level = level;
 
-  uint8_t *d = i0.bits();
-  for( int i=0; i<n_pix; ++i, ++d ) {
-    *d = ( *d > lev ) ? white_lev : black_lev;
-  }
-  imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   updateDstItem();
   QString s = QSL( "File \"" ) % curFile % QSL( "\" " ) %
     QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.height() ) %
@@ -271,16 +264,18 @@ void ImgHand::makeBwSlot()
     return;
   }
   QString lbl = " p05: "
-        % QSN( histo_05p ) + ";  p50: "
-        % QSN( histo_50p ) + ";  p95: "
-        % QSN( histo_95p ) + ";  p_max: "
-        % QSN( histo_max ) ;
+        % QSN( ida.histo_05p ) + ";  p50: "
+        % QSN( ida.histo_50p ) + ";  p95: "
+        % QSN( ida.histo_95p ) + ";  p_max: "
+        % QSN( ida.histo_max ) ;
   bool ok;
-  int level = QInputDialog::getInt( this, "Input white level", lbl, histo_auto, -255, 255, 1, &ok );
-  if( ok ) {
-    makeBW( level );
-    viewResult();
+  int level = QInputDialog::getInt( this, "Input white level", lbl, ida.histo_auto, -255, 255, 1, &ok );
+  if( !ok ) {
+    return;
   }
+
+  makeBW( level );
+  viewResult();
 }
 
 
@@ -306,7 +301,7 @@ void ImgHand::makeBwAdaSlot()
   mat2img( mo, img );
 
   calcHisto();
-  makeBW( histo_auto ); // pi2 added here
+  makeBW( ida.histo_auto ); // pi2 added here
 
   img = img_t; // restore original
   calcHisto();
@@ -351,19 +346,20 @@ void ImgHand::showInfo()
         % QSN( img.height() )       % QSL( ";  bpp: " )
         % QSN( img.depth() )        % QSL( ";  bpl: " )
         % QSN( img.bytesPerLine() ) % QSL( ";  n_pix: " )
-        % QSN( n_pix )              % QSL( ";  \n p05: " )
-        % QSN( histo_05p )          % QSL( ";  p50: " )
-        % QSN( histo_50p )          % QSL( ";  p95: " )
-        % QSN( histo_95p )          % QSL( ";  p_max: " )
-        % QSN( histo_max )          % QSL( ";  p_auto:" )
-        % QSN( histo_auto )         % QSL( ";" );
+        % QSN( ida.n_pix )              % QSL( ";  \n p05: " )
+        % QSN( ida.histo_05p )          % QSL( ";  p50: " )
+        % QSN( ida.histo_50p )          % QSL( ";  p95: " )
+        % QSN( ida.histo_95p )          % QSL( ";  p_max: " )
+        % QSN( ida.histo_max )          % QSL( ";  p_auto:" )
+        % QSN( ida.histo_auto )         % QSL( ";  u_level: " )
+        % QSN( ida.u_level )            % QSL( ";" );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
 
   QLineSeries *ser0 = new QLineSeries;
   for( int i=0; i< 256; ++i ) {
-    ser0->append( i, histo_r[i] );
+    ser0->append( i, ida.histo_r[i] );
   }
   QAreaSeries *series = new QAreaSeries( ser0 );
   series->setColor( Qt::black );
@@ -372,21 +368,21 @@ void ImgHand::showInfo()
   points->setMarkerShape( QScatterSeries::MarkerShapeCircle );
   points->setMarkerSize( 5.0 );
   points->setColor( Qt::red );
-  points->append( histo_05p, 0 );
-  points->append( histo_50p, 0 );
-  points->append( histo_95p, 0 );
+  points->append( ida.histo_05p, 0 );
+  points->append( ida.histo_50p, 0 );
+  points->append( ida.histo_95p, 0 );
 
   QScatterSeries *points1 = new QScatterSeries();
   points1->setMarkerShape( QScatterSeries::MarkerShapeCircle );
   points1->setMarkerSize( 5.0 );
   points1->setColor( Qt::green );
-  points1->append( histo_max, 0 );
+  points1->append( ida.histo_max, 0 );
 
   QScatterSeries *points2 = new QScatterSeries();
   points2->setMarkerShape( QScatterSeries::MarkerShapeCircle );
   points2->setMarkerSize( 7.0 );
   points2->setColor( Qt::blue );
-  points2->append( histo_auto, 0 );
+  points2->append( ida.histo_auto, 0 );
 
   QChart *chart = new QChart;
   chart->addSeries( series );
@@ -428,9 +424,9 @@ void ImgHand::showInfo()
   QPainter pa_t( &chart_pix );
   chartView->render( &pa_t );
   QFileInfo fi( curFile );
-  QString hy_file = fi.baseName() + QSL("_hysto.png");
-  qWarning() << "hy_file: \"" << hy_file << "\"";
-  chart_pix.save( hy_file, "PNG" );
+  QString hi_file = fi.baseName() + QSL("_histo.png");
+  cerr << "hi_file: \"" << qPrintable( hi_file) << "\"" << endl;
+  chart_pix.save( hi_file, "PNG" );
 
   delete dia;
 }
@@ -445,7 +441,7 @@ void ImgHand::boxCount0Slot()
   unsigned box_sz = 1, box_scale = 1;
 
   double lnr, lnN;
-  v_lnr.clear(); v_lnN.clear();
+  ida.v_lnr.clear(); ida.v_lnN.clear();
 
   QImage xi = imgx.copy();
   unsigned pic_w = xi.width(), pic_h = xi.height();
@@ -463,7 +459,7 @@ void ImgHand::boxCount0Slot()
 
     lnr = log2( (double)(box_sz) );
     lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
-    v_lnr.push_back( lnr ); v_lnN.push_back( lnN );
+    ida.v_lnr.push_back( lnr ); ida.v_lnN.push_back( lnN );
     cout << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
     // cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
     //      << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
@@ -477,9 +473,9 @@ void ImgHand::boxCount0Slot()
   }
 
 
-  double corr = gsl_stats_correlation( v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size() );
+  double corr = gsl_stats_correlation( ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size() );
   double c0, c1, cov00, cov01, cov11, sumq;
-  gsl_fit_linear(  v_lnr.data(), 1, v_lnN.data(), 1, v_lnr.size(),
+  gsl_fit_linear(  ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size(),
                    &c0, &c1, &cov00, &cov01, &cov11, &sumq );
 
   cout << "File: \"" << curFile.toLocal8Bit().data()
@@ -493,9 +489,9 @@ void ImgHand::boxCount0Slot()
 
   QLineSeries *ser0 = new QLineSeries;
   QLineSeries *ser1 = new QLineSeries;
-  for( unsigned i=0; i<v_lnr.size() ; ++i ) {
-    double x = v_lnr[i];
-    ser0->append( x, v_lnN[i] );
+  for( unsigned i=0; i<ida.v_lnr.size() ; ++i ) {
+    double x = ida.v_lnr[i];
+    ser0->append( x, ida.v_lnN[i] );
     ser1->append( x, c0 + c1 * x );
   }
   ser0->setPen( QColor( Qt::black ) );
@@ -567,7 +563,7 @@ void ImgHand::sobelSlot()
 
   updateSrcItem();
   calcHisto();
-  makeBW( histo_auto ); // pi2 added here
+  makeBW( ida.histo_auto ); // pi2 added here
   viewSource();
 
   // Mat ker = ( Mat_<char>( 3, 3 ) <<
@@ -1019,5 +1015,24 @@ void mat2img( const Mat &m, QImage &img )
   for( int i=0; i<m.rows; ++i ) {
     memcpy( img.scanLine( i ), m.ptr( i ), bpl );
   }
+}
+
+void makeBWImage( const QImage &img, QImage &dst, int level )
+{
+  QImage i0 = img.copy();
+  uint8_t lev = abs( level );
+  bool invers = level < 0;
+  uint8_t black_lev = 0, white_lev = 255;
+  if( invers ) {
+    black_lev = 255; white_lev = 0;
+  }
+
+  unsigned n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
+  uint8_t *d = i0.bits();
+  for( unsigned i=0; i<n_pix; ++i, ++d ) { // TODO: check scanlines
+    *d = ( *d > lev ) ? white_lev : black_lev;
+  }
+
+  dst = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
 }
 
