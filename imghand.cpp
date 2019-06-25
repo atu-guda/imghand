@@ -1030,9 +1030,10 @@ bool boxCount0( const QImage &imgx, ImgData &ida )
   while( pic_w >= 32 ) {
     pic_w = xi.width(); pic_h = xi.height();
 
-    // TODO: config.debug
-    // QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
-    // xi.save( cfn, "PNG" );
+    if( global_debug > 5 ) {
+      QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
+      xi.save( cfn, "PNG" );
+    }
 
     cnbp = count_bits( xi, true );
     double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
@@ -1040,8 +1041,11 @@ bool boxCount0( const QImage &imgx, ImgData &ida )
     lnr = log2( (double)(box_sz) );
     lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
     ida.v_lnr.push_back( lnr ); ida.v_lnN.push_back( lnN );
-    cout << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
-    // cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
+    if( global_debug > 0 ) {
+      cout << "# " << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h
+           << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
+    }
+    // cout << "# size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
     //      << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
     //      << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
 
