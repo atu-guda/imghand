@@ -399,52 +399,14 @@ void ImgHand::boxCount0Slot()
     return;
   }
 
-  uint64_t cnbp;
-  unsigned box_sz = 1, box_scale = 1;
-
-  double lnr, lnN;
-  ida.v_lnr.clear(); ida.v_lnN.clear();
-
-  QImage xi = imgx.copy();
-  unsigned pic_w = xi.width(), pic_h = xi.height();
-
-  cout << endl;
-  while( pic_w >= 32 ) {
-    pic_w = xi.width(); pic_h = xi.height();
-
-    // TODO: config.debug
-    // QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
-    // xi.save( cfn, "PNG" );
-
-    cnbp = count_bits( xi, true );
-    double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
-
-    lnr = log2( (double)(box_sz) );
-    lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
-    ida.v_lnr.push_back( lnr ); ida.v_lnN.push_back( lnN );
-    cout << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
-    // cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
-    //      << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
-    //      << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
-
-    QImage zi;
-    halfImageBW( xi, zi );
-    box_sz <<= 1 ; box_scale <<= 2;
-
-    xi = zi.copy();
+  if( !boxCount0( imgx, ida ) ) {
+    return;
   }
 
+  cout << "File: \"" << qPrintable( curFile )
+       << "\" Corr: " << ida.corr << " d1: " << ida.d1 << " c0: " << ida.c0 << endl;
 
-  double corr = gsl_stats_correlation( ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size() );
-  double c0, c1, cov00, cov01, cov11, sumq;
-  gsl_fit_linear(  ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size(),
-                   &c0, &c1, &cov00, &cov01, &cov11, &sumq );
-
-  cout << "File: \"" << curFile.toLocal8Bit().data()
-       << "\" Corr: " << corr << " c0: " << c0 << " c1: " << c1
-       << " cov00: " << cov00 << " cov01: " << cov01 << " cov11: " << cov11
-       << " sumq: " << sumq << endl;
-  QString s = QString( "File: \"%1\" C1: %2, Corr: %3" ).arg( curFile ).arg( -c1 ).arg( corr );
+  QString s = QString( "File: \"%1\" C1: %2, Corr: %3" ).arg( curFile ).arg( ida.d1 ).arg( ida.corr );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;
@@ -454,7 +416,7 @@ void ImgHand::boxCount0Slot()
   for( unsigned i=0; i<ida.v_lnr.size() ; ++i ) {
     double x = ida.v_lnr[i];
     ser0->append( x, ida.v_lnN[i] );
-    ser1->append( x, c0 + c1 * x );
+    ser1->append( x, ida.c0 - ida.d1 * x );
   }
   ser0->setPen( QColor( Qt::black ) );
   ser0->setPointsVisible( true );
@@ -486,7 +448,7 @@ void ImgHand::boxCount0Slot()
   dia->exec();
   delete dia;
 
-  stat_lbl->setText( curFile + " " + QSN( -c1 ) );
+  stat_lbl->setText( curFile + " " + QSN( ida.d1 ) );
 }
 
 
@@ -874,7 +836,7 @@ void ImgHand::createToolBars()
 void ImgHand::createStatusBar()
 {
   statBar = statusBar();
-  statBar->addWidget( (stat_lbl =  new QLabel("x")) );
+  statBar->addWidget( (stat_lbl =  new QLabel( QSL("Start")) ) );
   stat_lbl->setTextInteractionFlags( Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard );
   // statBar->addWidget( (labelSizeU =  new QLabel("(0x0).(0x0)")) );
   // statBar->showMessage(tr("Ready"));
@@ -1045,5 +1007,59 @@ bool calcImgHisto( const QImage &img, ImgData &ida )
       ida.histo_auto = 127;
     }
   }
+  return true;
+}
+
+bool boxCount0( const QImage &imgx, ImgData &ida )
+{
+  if( imgx.width() < 32 || imgx.height() < 32 || imgx.format() != QImage::Format_Mono ) {
+    cerr << "Error: boxCount0: bad input image" << endl;
+    return false;
+  }
+
+  uint64_t cnbp;
+  unsigned box_sz = 1, box_scale = 1;
+
+  double lnr, lnN;
+  ida.v_lnr.clear(); ida.v_lnN.clear();
+
+  QImage xi = imgx.copy();
+  unsigned pic_w = xi.width(), pic_h = xi.height();
+
+  cout << endl;
+  while( pic_w >= 32 ) {
+    pic_w = xi.width(); pic_h = xi.height();
+
+    // TODO: config.debug
+    // QString cfn = QString("tmp_%1.png").arg( pic_w, 6, 10, QChar('0') );
+    // xi.save( cfn, "PNG" );
+
+    cnbp = count_bits( xi, true );
+    double b_r = (double)cnbp / ( (double) pic_w * pic_h ) ;
+
+    lnr = log2( (double)(box_sz) );
+    lnN = (cnbp>0) ? log2( (double)(cnbp) ) : 0;
+    ida.v_lnr.push_back( lnr ); ida.v_lnN.push_back( lnN );
+    cout << lnr << ' ' << lnN << ' ' << pic_w << ' ' << pic_h << ' ' << cnbp << ' ' << box_scale << ' ' << b_r << endl;
+    // cout << "size: " << pic_w << " x " << pic_h << " black: " << cnbp << " BpL: " << xi.bytesPerLine()
+    //      << " box_scale: " << box_scale << " TB: " << (cnbp*box_scale)
+    //      << " ln_r: " << lnr << " lnN: " << lnN << " b_r:" << b_r << endl;
+
+    QImage zi;
+    halfImageBW( xi, zi );
+    box_sz <<= 1 ; box_scale <<= 2;
+
+    xi = zi.copy();
+  }
+
+
+  double corr = gsl_stats_correlation( ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size() );
+  double c0, c1, cov00, cov01, cov11, sumq;
+  gsl_fit_linear(  ida.v_lnr.data(), 1, ida.v_lnN.data(), 1, ida.v_lnr.size(),
+                   &c0, &c1, &cov00, &cov01, &cov11, &sumq );
+  ida.d1 = -c1;
+  ida.c0 = c0;
+  ida.corr = corr;
+
   return true;
 }
