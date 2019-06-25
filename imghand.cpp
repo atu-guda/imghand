@@ -29,25 +29,6 @@
 #include <QtGui>
 #include <QtDebug>
 
-#include <QApplication>
-#include <QImage>
-#include <QLabel>
-#include <QSplitter>
-#include <QScrollArea>
-#include <QVBoxLayout>
-#include <QTextStream>
-#include <QCloseEvent>
-#include <QFileDialog>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsPixmapItem>
-#include <QMenu>
-#include <QStatusBar>
-#include <QToolBar>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QInputDialog>
-#include <QTableWidgetItem>
 #include <QtCharts>
 
 #include <gsl/gsl_statistics.h>
@@ -66,9 +47,6 @@ using namespace std;
 using namespace QtCharts;
 
 using namespace cv;
-
-void img2mat( const QImage &img, Mat &m );
-void mat2img( const Mat &m, QImage &img );
 
 // number of '1' bits in byte
 static const int bit_tab[256] = {

@@ -41,6 +41,20 @@ class QGraphicsPixmapItem;
 #define QSL(x) QStringLiteral(x)
 #define QSN(x) QString::number(x)
 
+namespace cv {
+ class Mat;
+};
+
+// misc image and bits related funcs
+
+bool halfImageBW( const QImage &s, QImage &d );
+uint64_t count_bits( const QImage &img, bool count0 = false );
+void img2mat( const QImage &img, cv::Mat &m );
+void mat2img( const cv::Mat &m, QImage &img );
+
+// global data
+extern int global_debug;
+extern int batch_proc;
 
 class ImgHand : public QMainWindow
 {
@@ -149,14 +163,6 @@ private:
       QAction *aboutQtAct;
 };
 
-// misc image and bits related funcs
-
-bool halfImageBW( const QImage &s, QImage &d );
-uint64_t count_bits( const QImage &img, bool count0 = false );
-
-// global data
-extern int global_debug;
-extern int batch_proc;
 
 #endif
 
