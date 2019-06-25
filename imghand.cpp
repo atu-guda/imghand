@@ -39,6 +39,7 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QGraphicsView>
+#include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QMenu>
 #include <QStatusBar>
@@ -93,15 +94,13 @@ static const int bit_tab[256] = {
 ImgHand::ImgHand()
   : scene( new QGraphicsScene( this ) ),
   view( new QGraphicsView( scene ) ),
-  histo_0( 256, 0 ), histo_r( 256, 0.0 ), histo_c( 256, 1.0 )
+  histo_r( 256, 0.0 )
 {
-  histo_0[0] = 1; histo_r[0] = 1.0; // fake safe values
+  histo_r[0] = 1.0; // fake safe values
   v_lnr.reserve( 32 ); v_lnN.reserve( 32 );
 
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
-
-  pi1 = pi2 = nullptr;  // without pixmap items at start
 
   setCentralWidget( view );
 
@@ -184,10 +183,20 @@ void ImgHand::loadFile( const QString &fileName )
   loaded = true;
   setCurrentFile( fileName );
   scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
-  QString s = QSL( "File\"" ) % curFile % QSL( "\" " ) %
-    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.width() ) %
+  QString s = QSL( "File \"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.height() ) %
     QSL( " loaded" );
   stat_lbl->setText( s );
+
+  if( global_debug > 0 ) {
+    cerr << qPrintable( s ) << endl;
+  }
+  if( global_debug > 1 ) {
+    cerr << "Scene: " << scene->width() << 'x' << scene->height() << endl;
+    cerr << "View:  " <<  view->width() << 'x' << view->height()  << endl;
+    cerr << "MainW: " <<  this->width() << 'x' << this->height()  << endl;
+  }
+
   restoreImage();
 
   makeBW( histo_auto ); // pi2 added here
@@ -212,12 +221,14 @@ void ImgHand::restoreImage()
 void ImgHand::calcHisto()
 {
   n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
-  uchar *d = img.bits();
-  histo_0.assign( 256, 0 );
+  uint8_t *d = img.bits();
+  vector<int>  histo_0( 256, 0 );
+
   for( int i=0; i<n_pix; ++i, ++d ) { // count raw hystogramm data
     ++histo_0[*d];
   }
 
+  vector<double> histo_c( 256, 0.0 );
   double c = 0;
   histo_05p = histo_50p = histo_95p = -1; // flag: not set
   histo_max = 0;
@@ -254,22 +265,25 @@ void ImgHand::calcHisto()
 void ImgHand::makeBW( int level )
 {
   QImage i0 = img.copy();
-  uchar lev = abs( level );
+  uint8_t lev = abs( level );
   bool invers = level < 0;
-  uchar black_lev = 0, white_lev = 255;
+  uint8_t black_lev = 0, white_lev = 255;
   if( invers ) {
     black_lev = 255; white_lev = 0;
   }
 
-  uchar *d = i0.bits();
+  uint8_t *d = i0.bits();
   for( int i=0; i<n_pix; ++i, ++d ) {
     *d = ( *d > lev ) ? white_lev : black_lev;
   }
   imgx = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
   updateDstItem();
-  QString s = QSL( "File\"" ) % curFile % QSL( "\" " ) %
-    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.width() ) %
+  QString s = QSL( "File \"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.height() ) %
     QSL( " B/W recalculated: level " ) % QSN( level );
+  if( global_debug > 0 ) {
+    cerr << qPrintable( s ) << endl;
+  }
   stat_lbl->setText( s );
 }
 
@@ -600,18 +614,20 @@ bool halfImageBW( const QImage &s, QImage &d )
   bool invers = qRed( s.color( 0 )) != 0; // 0 may be white!
 
   for( unsigned dline=0; dline<h1; ++dline ) {
-    uchar *d0 = z.scanLine( dline );
+    uint8_t *d0 = z.scanLine( dline );
     const unsigned sline0 = dline  * 2;
     const unsigned sline1 = sline0 + 1;
-    const uchar *s0 = s.scanLine( sline0 );
-    const uchar *s1 = s.scanLine( sline1 );
+    const uint8_t *s0 = s.scanLine( sline0 );
+    const uint8_t *s1 = s.scanLine( sline1 );
     for( unsigned dcol = 0; dcol < w1/8; ++dcol ) {
-      unsigned char c = 0x00;
-      unsigned char c0 = *s0++, c1 = *s1++;
+
+      uint8_t c0 = *s0++, c1 = *s1++;
+      uint8_t c = 0x00;
+
       if( invers ) {
         c0 = ~c0; c1 = ~c1;
       }
-      unsigned char cx = ~( c0 & c1 );
+      uint8_t cx = ~( c0 & c1 );
 
       if( cx & 0xC0 )
         c |= 0x80;
@@ -644,6 +660,7 @@ bool halfImageBW( const QImage &s, QImage &d )
   d = z;
   return true;
 }
+
 
 void ImgHand::showData()
 {
@@ -982,7 +999,7 @@ uint64_t count_bits( const QImage &img, bool count0 )
   unsigned wb = w / 8; // in bytes
   uint64_t nbits = 0, totalbits = (uint64_t) wb * 8 * h;
   for( unsigned row = 0; row < h; ++row ) {
-    const unsigned char *s = img.scanLine( row );
+    const uint8_t *s = img.scanLine( row );
     for( unsigned i=0; i<wb; ++i ) {
       nbits += bit_tab[s[i]];
     }

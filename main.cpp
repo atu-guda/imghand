@@ -18,12 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <iostream>
 
 #include <QApplication>
 #include <QtDebug>
 #include <QCommandLineParser>
 
 #include "imghand.h"
+
+using namespace std;
 
 int global_debug = 0;
 int batch_proc = 0;
@@ -59,17 +62,28 @@ int main( int argc, char *argv[] )
 
   QStringList pargs = prs.positionalArguments();
 
-  auto *mw = new ImgHand();
-  mw->show();
+  int rc = 0;
 
-  for( auto fn : pargs ) {
-    if( global_debug > 0 ) {
-      qDebug() << "Try to open file" << fn;
+  if( ! batch_proc ) {
+    auto *mw = new ImgHand();
+    mw->showMaximized();
+    mw->show();
+
+    for( auto fn : pargs ) {
+      if( global_debug > 0 ) {
+        cerr << "Try to open file \"" << qPrintable( fn ) << '"' << endl;
+      }
+      mw->loadFile( fn );
+      break; // TODO: more files?
     }
-    mw->loadFile( fn );
-    break;
-  }
 
-  return app.exec();
+    rc = app.exec();
+  } else { // batch processing
+    if( pargs.size() < 1 ) {
+      cerr << "Error: need filename for batch process" << endl;
+      return 1;
+    }
+  }
+  return rc;
 }
 

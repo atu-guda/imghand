@@ -26,10 +26,7 @@
 #include <vector>
 
 #include <QMainWindow>
-#include <QCloseEvent>
 #include <QString>
-#include <QGraphicsScene>
-#include <QGraphicsView>
 
 
 class QAction;
@@ -37,6 +34,9 @@ class QMenu;
 class QImage;
 class QLabel;
 class QScrollArea;
+class QGraphicsView;
+class QGraphicsScene;
+class QGraphicsPixmapItem;
 
 #define QSL(x) QStringLiteral(x)
 #define QSN(x) QString::number(x)
@@ -99,15 +99,13 @@ private:
       // new Scene approach
       QGraphicsScene *scene;
       QGraphicsView *view;
-      QGraphicsPixmapItem *pi1, *pi2;
+      QGraphicsPixmapItem *pi1 = nullptr, *pi2 = nullptr;
 
       QString curFile;
       bool loaded = false;
       int n_pix = 256;             //* fake
       int histo_05p = 13, histo_50p = 128, histo_95p = 243, histo_max = 0, histo_auto = 128;
-      std::vector<int>    histo_0; //* initial counts
       std::vector<double> histo_r; //* relative counts
-      std::vector<double> histo_c; //* cumulative counts
       std::vector<double> v_lnr, v_lnN;
 
       // =================== User Interface =================
