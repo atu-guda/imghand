@@ -57,6 +57,7 @@ struct ImgData {
   std::vector<double> v_lnr, v_lnN;
 };
 
+bool calcImgHisto( const QImage &img, ImgData &ida );
 void makeBWImage( const QImage &img, QImage &dst, int level );
 bool halfImageBW( const QImage &s, QImage &d );
 uint64_t count_bits( const QImage &img, bool count0 = false );

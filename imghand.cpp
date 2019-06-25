@@ -164,6 +164,7 @@ void ImgHand::loadFile( const QString &fileName )
 
   loaded = true;
   setCurrentFile( fileName );
+  ida.n_pix = img_s.width() * img_s.height();
   scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
   QString s = QSL( "File \"" ) % curFile % QSL( "\" " ) %
     QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.height() ) %
@@ -201,46 +202,7 @@ void ImgHand::restoreImage()
 
 void ImgHand::calcHisto()
 {
-  ida.n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
-  uint8_t *d = img.bits();
-  vector<int>  histo_0( 256, 0 );
-
-  for( unsigned i=0; i<ida.n_pix; ++i, ++d ) { // count raw histogramm data
-    ++histo_0[*d];
-  }
-
-  vector<double> histo_c( 256, 0.0 );
-  double c = 0;
-  ida.histo_05p = ida.histo_50p = ida.histo_95p = -1; // flag: not set
-  ida.histo_max = 0;
-  double v_max = -1;
-  for( int i=0; i<256; ++i ) {
-    double v   = (double)histo_0[i] / ida.n_pix;
-    ida.histo_r[i] = v;
-    c += v;
-    histo_c[i] = c;
-    if( ida.histo_05p < 0 && c >= 0.05 ) {
-      ida.histo_05p = i;
-    }
-    if( ida.histo_50p < 0 && c >= 0.5  ) {
-      ida.histo_50p = i;
-    }
-    if( ida.histo_95p < 0 && c >= 0.95  ) {
-      ida.histo_95p = i;
-    }
-    if( v > v_max ) {
-      v_max = v; ida.histo_max = i;
-    }
-  }
-
-  ida.histo_auto = ida.histo_50p;
-  if( ( ida.histo_95p - ida.histo_50p ) < 5 || ( ida.histo_50p - ida.histo_05p ) < 5 ) {
-    if( ( ida.histo_95p - ida.histo_05p ) > 4 ) {
-      ida.histo_auto = ( ida.histo_95p + ida.histo_05p ) / 2;
-    } else {
-      ida.histo_auto = 127;
-    }
-  }
+  calcImgHisto( img, ida );
 }
 
 void ImgHand::makeBW( int level )
@@ -1036,3 +998,52 @@ void makeBWImage( const QImage &img, QImage &dst, int level )
   dst = i0.convertToFormat( QImage::Format_Mono,       Qt::ThresholdDither );
 }
 
+bool calcImgHisto( const QImage &img, ImgData &ida )
+{
+  if( img.format() != QImage::Format_Grayscale8 ) {
+    cerr << "Error: bad image format, need Format_Grayscale8" << endl;
+    return false;
+  }
+
+  ida.n_pix = img.width() * img.height(); // Format_Grayscale8 = 1 byte / pixel
+  const uint8_t *d = img.bits();
+  vector<int>  histo_0( 256, 0 );
+
+  for( unsigned i=0; i<ida.n_pix; ++i, ++d ) { // count raw histogramm data
+    ++histo_0[*d];
+  }
+
+  vector<double> histo_c( 256, 0.0 );
+  double c = 0;
+  ida.histo_05p = ida.histo_50p = ida.histo_95p = -1; // flag: not set
+  ida.histo_max = 0;
+  double v_max = -1;
+  for( int i=0; i<256; ++i ) {
+    double v   = (double)histo_0[i] / ida.n_pix;
+    ida.histo_r[i] = v;
+    c += v;
+    histo_c[i] = c;
+    if( ida.histo_05p < 0 && c >= 0.05 ) {
+      ida.histo_05p = i;
+    }
+    if( ida.histo_50p < 0 && c >= 0.5  ) {
+      ida.histo_50p = i;
+    }
+    if( ida.histo_95p < 0 && c >= 0.95  ) {
+      ida.histo_95p = i;
+    }
+    if( v > v_max ) {
+      v_max = v; ida.histo_max = i;
+    }
+  }
+
+  ida.histo_auto = ida.histo_50p;
+  if( ( ida.histo_95p - ida.histo_50p ) < 5 || ( ida.histo_50p - ida.histo_05p ) < 5 ) {
+    if( ( ida.histo_95p - ida.histo_05p ) > 4 ) {
+      ida.histo_auto = ( ida.histo_95p + ida.histo_05p ) / 2;
+    } else {
+      ida.histo_auto = 127;
+    }
+  }
+  return true;
+}
