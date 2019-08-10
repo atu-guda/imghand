@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <chrono>
 
 #include <QtGui>
 #include <QtDebug>
@@ -896,12 +897,15 @@ uint64_t count_bits( const QImage &img, bool count0 )
   unsigned w = img.width(), h = img.height();
   unsigned wb = w / 8; // in bytes
   uint64_t nbits = 0, totalbits = (uint64_t) wb * 8 * h;
+
+  auto t_st = chrono::high_resolution_clock::now();
   for( unsigned row = 0; row < h; ++row ) {
     const uint8_t *s = img.scanLine( row );
     for( unsigned i=0; i<wb; ++i ) {
       nbits += bit_tab[s[i]];
     }
   }
+  auto t_end = chrono::high_resolution_clock::now();
 
   QRgb co0 = img.color( 0 ); // 0 may be white!
   if( qRed(co0) != 0 ) {
@@ -911,6 +915,11 @@ uint64_t count_bits( const QImage &img, bool count0 )
   if( count0 ) {
     nbits = totalbits - nbits;
   }
+  if( global_debug > 0 ) {
+    cerr << "# count_bits bits: " << totalbits
+         << " time: " << chrono::duration_cast<chrono::microseconds>( t_end - t_st ).count() << " us" << endl;
+  }
+
   return nbits;
 }
 
