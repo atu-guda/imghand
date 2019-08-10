@@ -903,6 +903,7 @@ uint64_t count_bits( const QImage &img, bool count0 )
     const uint8_t *s = img.scanLine( row );
     for( unsigned i=0; i<wb; ++i ) {
       nbits += bit_tab[s[i]];
+      // nbits +=  __builtin_popcount( s[i] );
     }
   }
   auto t_end = chrono::high_resolution_clock::now();
