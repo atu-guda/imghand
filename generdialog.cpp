@@ -1,6 +1,8 @@
 #include "imghand_base.h"
 #include "generdialog.h"
 
+using namespace std;
+
 GenerDialog::GenerDialog( GenerData &sd, QWidget *parent )
   : QDialog( parent ), d( sd )
 {
@@ -23,7 +25,8 @@ void GenerDialog::setupUi()
   w_le = new QLineEdit( this );
   w_le->setObjectName( QSL("w_le") );
   w_le->setText( QSN( d.w ) );
-  // TODO: validator
+  auto *w_v = new QIntValidator( 128, 10240, this );
+  w_le->setValidator( w_v );
   gridLayout->addWidget( w_le, 0, 1, 1, 1 );
   w_lbl->setBuddy( w_le );
 
@@ -33,7 +36,8 @@ void GenerDialog::setupUi()
   h_le = new QLineEdit( this );
   h_le->setObjectName( QSL("h_le") );
   h_le->setText( QSN( d.h ) );
-  // TODO: validator
+  auto *h_v = new QIntValidator( 128, 10240, this );
+  h_le->setValidator( h_v );
   gridLayout->addWidget( h_le, 1, 1, 1, 1 );
   h_lbl->setBuddy( h_le );
 
@@ -43,7 +47,8 @@ void GenerDialog::setupUi()
   iter_le = new QLineEdit( this );
   iter_le->setObjectName( QSL("iter_le") );
   iter_le->setText( QSN( d.iter ) );
-  // TODO: validator
+  auto *iter_v = new QIntValidator( 1, 32, this );
+  iter_le->setValidator( iter_v );
   gridLayout->addWidget( iter_le, 2, 1, 1, 1 );
   iter_lbl->setBuddy( iter_le );
 
@@ -66,7 +71,8 @@ void GenerDialog::setupUi()
   size0_le = new QLineEdit( this );
   size0_le->setObjectName( QSL("size0_le") );
   size0_le->setText( QSN( d.size0 ) );
-  // TODO: validator
+  auto *size0_v = new QDoubleValidator( 1, 512, 3, this );
+  size0_le->setValidator( size0_v );
   gridLayout->addWidget( size0_le, 4, 1, 1, 1 );
   size0_lbl->setBuddy( size0_le );
 
@@ -76,7 +82,8 @@ void GenerDialog::setupUi()
   scale_le = new QLineEdit( this );
   scale_le->setObjectName( QSL("scale_le") );
   scale_le->setText( QSN( d.scale ) );
-  // TODO: validator
+  auto *scale_v = new QDoubleValidator( 0.001, 1.0, 3, this );
+  scale_le->setValidator( scale_v );
   gridLayout->addWidget( scale_le, 5, 1, 1, 1 );
   scale_lbl->setBuddy( scale_le );
 
@@ -97,12 +104,12 @@ void GenerDialog::setupUi()
 
 void GenerDialog::accept()
 {
-  d.w = w_le->text().toInt();
-  d.h = h_le->text().toInt();
+  d.w = ( w_le->text().toInt() + 15 ) & 0x0000FFF0;
+  d.h = ( h_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.iter = iter_le->text().toInt();
   d.type = type_cb->currentText().toInt();
-  d.size0 = size0_le->text().toDouble();
-  d.scale = scale_le->text().toDouble();
+  d.size0 = clamp( size0_le->text().toDouble(), 1.0, 1000.0 );
+  d.scale = clamp( scale_le->text().toDouble(), 0.001, 1.0 );
   QDialog::accept();
 }
 

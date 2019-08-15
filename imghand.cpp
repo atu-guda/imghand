@@ -144,6 +144,40 @@ void ImgHand::gener()
     return;
   }
 
+  QApplication::setOverrideCursor( Qt::WaitCursor );
+
+  img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
+  QPainter p( &img_s );
+  p.fillRect( 0, 0, gdat.w, gdat.h, Qt::white );
+  auto x0 = gdat.w / 2;
+  auto y0 = gdat.h / 2;
+  p.setBrush( Qt::gray ); p.setPen( Qt::NoPen );
+  p.drawEllipse( x0, y0, gdat.size0, gdat.size0 );
+
+  loaded = true;
+  setCurrentFile( QSL("newfile.png") ); // TODO: + index
+  ida.n_pix = img_s.width() * img_s.height();
+  scene->setSceneRect( 0, 0, img_s.width(), img_s.height() );
+  QString s = QSL( "File \"" ) % curFile % QSL( "\" " ) %
+    QSN( img_s.width() ) % QSL( "x" ) % QSN( img_s.height() ) %
+    QSL( " created" );
+  stat_lbl->setText( s );
+
+  if( global_debug > 0 ) {
+    cerr << qPrintable( s ) << endl;
+  }
+  if( global_debug > 1 ) {
+    cerr << "Scene: " << scene->width() << 'x' << scene->height() << endl;
+    cerr << "View:  " <<  view->width() << 'x' << view->height()  << endl;
+    cerr << "MainW: " <<  this->width() << 'x' << this->height()  << endl;
+  }
+
+  restoreImage();
+
+  makeBW( ida.histo_auto ); // pi2 added here
+
+  QApplication::restoreOverrideCursor();
+
 }
 
 void ImgHand::updateSrcItem()
