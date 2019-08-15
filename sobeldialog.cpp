@@ -1,3 +1,4 @@
+#include "imghand_base.h"
 #include "sobeldialog.h"
 
 SobelDialog::SobelDialog( SobelData &sd, QWidget *parent )
@@ -8,80 +9,80 @@ SobelDialog::SobelDialog( SobelData &sd, QWidget *parent )
 
 void SobelDialog::setupUi()
 {
-  setObjectName( QStringLiteral("Dialog") );
-  setWindowTitle( QStringLiteral( "Sobel filter parameters" ) );
+  setObjectName( QSL("SobelDialog") );
+  setWindowTitle( QSL( "Sobel filter parameters" ) );
   // resize(279, 261);
   verticalLayout = new QVBoxLayout( this );
-  verticalLayout->setObjectName( QStringLiteral("verticalLayout") );
+  verticalLayout->setObjectName( QSL("verticalLayout") );
   gridLayout = new QGridLayout();
-  gridLayout->setObjectName( QStringLiteral("gridLayout") );
+  gridLayout->setObjectName( QSL("gridLayout") );
 
-  dx_label = new QLabel( QStringLiteral("dx"), this );
-  dx_label->setObjectName( QStringLiteral("dx_label") );
+  dx_label = new QLabel( QSL("dx"), this );
+  dx_label->setObjectName( QSL("dx_label") );
   gridLayout->addWidget( dx_label, 0, 0, 1, 1 );
 
   dx_cb = new QComboBox( this );
-  dx_cb->addItem( QStringLiteral("0") );
-  dx_cb->addItem( QStringLiteral("1") );
-  dx_cb->addItem( QStringLiteral("2") );
-  dx_cb->addItem( QStringLiteral("3") );
-  dx_cb->setObjectName( QStringLiteral("dx_cb") );
+  dx_cb->addItem( QSL("0") );
+  dx_cb->addItem( QSL("1") );
+  dx_cb->addItem( QSL("2") );
+  dx_cb->addItem( QSL("3") );
+  dx_cb->setObjectName( QSL("dx_cb") );
   gridLayout->addWidget( dx_cb, 0, 1, 1, 1 );
 
-  dy_label = new QLabel( QStringLiteral("dy"), this );
-  dy_label->setObjectName( QStringLiteral("dy_label") );
+  dy_label = new QLabel( QSL("dy"), this );
+  dy_label->setObjectName( QSL("dy_label") );
   gridLayout->addWidget( dy_label, 1, 0, 1, 1 );
 
   dy_cb = new QComboBox( this );
-  dy_cb->addItem( QStringLiteral("0") );
-  dy_cb->addItem( QStringLiteral("1") );
-  dy_cb->addItem( QStringLiteral("2") );
-  dy_cb->addItem( QStringLiteral("3") );
-  dy_cb->setObjectName( QStringLiteral("dy_cb") );
+  dy_cb->addItem( QSL("0") );
+  dy_cb->addItem( QSL("1") );
+  dy_cb->addItem( QSL("2") );
+  dy_cb->addItem( QSL("3") );
+  dy_cb->setObjectName( QSL("dy_cb") );
   gridLayout->addWidget( dy_cb, 1, 1, 1, 1 );
 
-  ksize_label = new QLabel( QStringLiteral("ksize"), this );
-  ksize_label->setObjectName( QStringLiteral("ksize_label") );
+  ksize_label = new QLabel( QSL("ksize"), this );
+  ksize_label->setObjectName( QSL("ksize_label") );
   gridLayout->addWidget( ksize_label, 2, 0, 1, 1 );
 
   ksize_cb = new QComboBox( this );
-  ksize_cb->addItem( QStringLiteral("3")  );
-  ksize_cb->addItem( QStringLiteral("5")  );
-  ksize_cb->addItem( QStringLiteral("7")  );
-  ksize_cb->addItem( QStringLiteral("1")  );
-  ksize_cb->addItem( QStringLiteral("-1") );
-  ksize_cb->setObjectName( QStringLiteral("ksize_cb") );
+  ksize_cb->addItem( QSL("3")  );
+  ksize_cb->addItem( QSL("5")  );
+  ksize_cb->addItem( QSL("7")  );
+  ksize_cb->addItem( QSL("1")  );
+  ksize_cb->addItem( QSL("-1") );
+  ksize_cb->setObjectName( QSL("ksize_cb") );
   gridLayout->addWidget( ksize_cb, 2, 1, 1, 1 );
 
-  scale_label = new QLabel( QStringLiteral("scale"), this );
-  scale_label->setObjectName( QStringLiteral("scale_label") );
+  scale_label = new QLabel( QSL("scale"), this );
+  scale_label->setObjectName( QSL("scale_label") );
   gridLayout->addWidget( scale_label, 3, 0, 1, 1 );
 
   scale_le = new QLineEdit( this );
-  scale_le->setObjectName( QStringLiteral("scale_le") );
+  scale_le->setObjectName( QSL("scale_le") );
   gridLayout->addWidget( scale_le, 3, 1, 1, 1 );
 
-  delta_label = new QLabel( QStringLiteral("delta"), this );
-  delta_label->setObjectName( QStringLiteral("delta_label") );
+  delta_label = new QLabel( QSL("delta"), this );
+  delta_label->setObjectName( QSL("delta_label") );
   gridLayout->addWidget( delta_label, 4, 0, 1, 1 );
 
   delta_le = new QLineEdit( this );
-  delta_le->setObjectName( QStringLiteral("delta_le") );
+  delta_le->setObjectName( QSL("delta_le") );
 
   gridLayout->addWidget( delta_le, 4, 1, 1, 1 );
 
   label = new QLabel( this );
-  label->setObjectName( QStringLiteral("label") );
+  label->setObjectName( QSL("label") );
   gridLayout->addWidget( label, 5, 0, 1, 1 );
 
   rescale_cb = new QCheckBox( this );
-  rescale_cb->setObjectName( QStringLiteral("rescale_cb") );
+  rescale_cb->setObjectName( QSL("rescale_cb") );
   gridLayout->addWidget( rescale_cb, 5, 1, 1, 1 );
 
   verticalLayout->addLayout( gridLayout );
 
   buttonBox = new QDialogButtonBox( this );
-  buttonBox->setObjectName( QStringLiteral("buttonBox") );
+  buttonBox->setObjectName( QSL("buttonBox") );
   buttonBox->setOrientation( Qt::Horizontal );
   buttonBox->setStandardButtons( QDialogButtonBox::Cancel | QDialogButtonBox::Ok );
 
@@ -93,8 +94,8 @@ void SobelDialog::setupUi()
   scale_label->setBuddy( scale_le );
   delta_label->setBuddy( delta_le );
 
-  btnRevert  = buttonBox->addButton( QStringLiteral("Revert"),   QDialogButtonBox::ActionRole );
-  btnDefault = buttonBox->addButton( QStringLiteral("Default"),  QDialogButtonBox::ResetRole  );
+  btnRevert  = buttonBox->addButton( QSL("Revert"),   QDialogButtonBox::ActionRole );
+  btnDefault = buttonBox->addButton( QSL("Default"),  QDialogButtonBox::ResetRole  );
 
   revert();
 

@@ -43,6 +43,7 @@
 
 #include "imghand.h"
 #include "sobeldialog.h"
+#include "generdialog.h"
 
 using namespace std;
 using namespace QtCharts;
@@ -129,6 +130,20 @@ void ImgHand::open()
   if( !fileName.isEmpty() ) {
     loadFile( fileName );
   }
+}
+
+void ImgHand::gener()
+{
+  GenerData gdat;
+  GenerDialog *dia = new GenerDialog( gdat, this );
+
+  auto rc = dia->exec();
+  delete dia;
+
+  if( rc != QDialog::Accepted ) {
+    return;
+  }
+
 }
 
 void ImgHand::updateSrcItem()
@@ -660,7 +675,7 @@ void ImgHand::about()
 {
   QMessageBox::about( this, tr("About ImgHand"),
       tr("The <b>ImgHand</b> is a a test "
-         "application to do something with images " ));
+         "application to do image fractal analisys" ));
 }
 
 
@@ -672,6 +687,11 @@ void ImgHand::createActions()
   openAct->setShortcut( tr("Ctrl+O") );
   openAct->setToolTip( tr("Open an existing image file (Ctrl+O)") );
   connect( openAct, &QAction::triggered, this, &ImgHand::open );
+
+  generAct = new QAction( /* QIcon(":/icons/fileopen.png"), */ tr("&Generate..."), this );
+  generAct->setShortcut( tr("Ctrl+G") );
+  generAct->setToolTip( tr("Generate image (Ctrl+G)") );
+  connect( generAct, &QAction::triggered, this, &ImgHand::gener );
 
   saveAsAct = new QAction( QIcon(":/icons/filesaveas.png"), tr("&Save result"), this);
   saveAsAct->setShortcut( tr("Ctrl+S") );
@@ -770,6 +790,7 @@ void ImgHand::createMenus()
 {
   fileMenu = menuBar()->addMenu( tr("&File") );
   fileMenu->addAction( openAct );
+  fileMenu->addAction( generAct );
   fileMenu->addSeparator();
   fileMenu->addAction( saveAsAct );
   fileMenu->addSeparator();
@@ -828,10 +849,10 @@ void ImgHand::createToolBars()
   fileToolBar->addAction( makeBwAct );
   fileToolBar->addAction( makeBwAdaAct );
   fileToolBar->addAction( boxCount0Act );
-  fileToolBar->addAction( analyzeAct );
+  // fileToolBar->addAction( analyzeAct );
   fileToolBar->addSeparator();
 
-  fileToolBar->addAction( exitAct );
+  // fileToolBar->addAction( exitAct );
 }
 
 void ImgHand::createStatusBar()

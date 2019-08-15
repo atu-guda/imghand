@@ -16,10 +16,12 @@ MOC_DIR=.moc
 
 SOURCES += imghand.cpp
 SOURCES += sobeldialog.cpp
+SOURCES += generdialog.cpp
 SOURCES += main.cpp
 
 HEADERS += imghand.h
 HEADERS += sobeldialog.h
+HEADERS += generdialog.h
 
 RESOURCES = imghand.qrc
 

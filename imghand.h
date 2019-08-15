@@ -28,6 +28,8 @@
 #include <QMainWindow>
 #include <QString>
 
+#include "imghand_base.h"
+
 
 class QAction;
 class QMenu;
@@ -37,9 +39,6 @@ class QScrollArea;
 class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsPixmapItem;
-
-#define QSL(x) QStringLiteral(x)
-#define QSN(x) QString::number(x)
 
 namespace cv {
  class Mat;
@@ -66,9 +65,6 @@ bool boxCount0( const QImage &imgx, ImgData &ida );
 void img2mat( const QImage &img, cv::Mat &m );
 void mat2img( const cv::Mat &m, QImage &img );
 
-// global data
-extern int global_debug;
-extern int batch_proc;
 
 class ImgHand : public QMainWindow
 {
@@ -85,6 +81,7 @@ protected:
 
 private slots:
       void open();
+      void gener();
       void saveAs();
 
       void viewZoomIn();
@@ -144,7 +141,9 @@ private:
       QMenu *helpMenu;
       QToolBar *fileToolBar;
       // QToolBar *editToolBar;
+
       // QAction *newAct;
+      QAction *generAct;
       QAction *openAct;
       // QAction *setOptionsAct;
       QAction *restoreImageAct;
