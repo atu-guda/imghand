@@ -80,14 +80,15 @@ void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth
     return;
   }
 
+  int i = 0;
   for( const auto sub : f.subs ) {
     p.save();
-    p.translate( sub.x(), sub.y() );
+    p.translate( sub.x() * gdat.ss, sub.y() * gdat.ss );
     p.scale( gdat.scale, gdat.scale );
-    // p.rotate( 22.5 );
+    p.rotate( f.angs[i] * gdat.as + gdat.aa );
     paintForm( p, gdat, f, depth );
-    // p.drawPolygon( po_s,   Qt::WindingFill );
     p.restore();
+    ++i;
   }
 }
 
@@ -111,7 +112,7 @@ ImgHand::ImgHand()
       {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
    },
    QVector<QPointF> { {0.8,0.8}, {0.8,-0.8}, {-0.8,-0.8}, {-0.8,0.8} },
-   QVector<double> { 0.0, 0.0, 0.0, 0.0 },
+   QVector<double> {       0.0,        0.0,         0.0,        0.0 },
   } );
 
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
@@ -188,28 +189,12 @@ void ImgHand::gener()
   auto x0 = gdat.w / 2;
   auto y0 = gdat.h / 2;
 
-  p.setBrush( Qt::gray ); p.setPen( Qt::NoPen );
+  p.setBrush( Qt::black ); p.setPen( Qt::NoPen );
   p.translate( x0, y0 );
   p.scale( gdat.size0, gdat.size0 );
 
   paintForm( p, gdat, forms[gdat.type], gdat.iter );
 
-  // p.drawPolygon( po_s,   Qt::WindingFill );
-  //
-  // p.save();
-  // p.translate( 0.7, 0.7 );
-  // p.scale( gdat.scale, gdat.scale );
-  // p.drawPolygon( po_s,   Qt::WindingFill );
-  // p.restore();
-  //
-  // p.save();
-  // p.translate( 0.7, -0.7 );
-  // p.scale( gdat.scale, gdat.scale );
-  // p.rotate( 22.5 );
-  // p.drawPolygon( po_s,   Qt::WindingFill );
-  // p.restore();
-
-  // p.drawEllipse( x0, y0, gdat.size0, gdat.size0 );
 
   loaded = true;
   setCurrentFile( QSL("newfile.png") ); // TODO: + index

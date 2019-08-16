@@ -13,9 +13,11 @@
 #include <QVBoxLayout>
 
 struct GenerData {
-  unsigned w = 1024, h = 768, iter = 5;
+  unsigned w = 1024, h = 768, iter = 6;
   unsigned type = 0; // TODO: enum - list
-  double size0 = 100, scale = 0.5;
+  double size0 = 200, scale = 0.5, ss = 1.0, as = 1.0, aa = 0.0;
+  // ss = shift_scale, as = alpha_scale, aa = alpha_add
+  double a = 1, b = 1, c = 1, d = 1;
 };
 
 
@@ -29,20 +31,20 @@ class GenerDialog : public QDialog {
    GenerData &d;
    QVBoxLayout *verticalLayout;
    QGridLayout *gridLayout;
-   QLabel *w_lbl;
-   QLineEdit *w_le;
-   QLabel *h_lbl;
-   QLineEdit *h_le;
-   QLabel *iter_lbl;
-   QLineEdit *iter_le;
+
+   QLabel   *w_lbl, *h_lbl, *iter_lbl;
+   QLineEdit *w_le,  *h_le,  *iter_le;
 
    QLabel *type_lbl;
    QComboBox *type_cb;
 
-   QLabel *size0_lbl;
-   QLineEdit *size0_le;
-   QLabel *scale_lbl;
-   QLineEdit *scale_le;
+   QLabel   *size0_lbl, *scale_lbl;
+   QLineEdit *size0_le, *scale_le;
+
+   QLabel   *ss_lbl, *as_lbl, *aa_lbl;
+   QLineEdit *ss_le, *as_le, *aa_le;
+   QLabel    *a_lbl, *b_lbl, *c_lbl, *d_lbl;
+   QLineEdit *a_le,   *b_le,  *c_le, *d_le;
 
    QDialogButtonBox *buttonBox;
 };

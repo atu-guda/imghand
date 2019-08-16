@@ -56,12 +56,12 @@ void GenerDialog::setupUi()
   type_lbl->setObjectName( QSL("type_lbl") );
   gridLayout->addWidget( type_lbl, 3, 0, 1, 1 );
   type_cb = new QComboBox( this );
+  type_cb->addItem( QSL("Star") );
   type_cb->addItem( QSL("Box") );
-  type_cb->addItem( QSL("X1") );
   type_cb->addItem( QSL("X2") );
   type_cb->addItem( QSL("X3") );
   type_cb->setObjectName( QSL("type_cb") );
-  gridLayout->addWidget( type_cb, 3, 1, 1, 2 );
+  gridLayout->addWidget( type_cb, 3, 1, 1, 1 );
   type_lbl->setBuddy( type_cb );
 
 
@@ -87,6 +87,83 @@ void GenerDialog::setupUi()
   gridLayout->addWidget( scale_le, 5, 1, 1, 1 );
   scale_lbl->setBuddy( scale_le );
 
+  ss_lbl = new QLabel( QSL("s&hift scale"), this );
+  ss_lbl->setObjectName( QSL("ss_lbl") );
+  gridLayout->addWidget( ss_lbl, 0, 2, 1, 1 );
+  ss_le = new QLineEdit( this );
+  ss_le->setObjectName( QSL("ss_le") );
+  ss_le->setText( QSN( d.ss ) );
+  auto *ss_v = new QDoubleValidator( 0.001, 10.0, 3, this );
+  ss_le->setValidator( ss_v );
+  gridLayout->addWidget( ss_le, 0, 3, 1, 1 );
+  ss_lbl->setBuddy( ss_le );
+
+  as_lbl = new QLabel( QSL("Angle scale"), this );
+  as_lbl->setObjectName( QSL("as_lbl") );
+  gridLayout->addWidget( as_lbl, 1, 2, 1, 1 );
+  as_le = new QLineEdit( this );
+  as_le->setObjectName( QSL("as_le") );
+  as_le->setText( QSN( d.as ) );
+  auto *as_v = new QDoubleValidator( 0.001, 10.0, 3, this );
+  as_le->setValidator( as_v );
+  gridLayout->addWidget( as_le, 1, 3, 1, 1 );
+  as_lbl->setBuddy( as_le );
+
+  aa_lbl = new QLabel( QSL("Angle add"), this );
+  aa_lbl->setObjectName( QSL("aa_lbl") );
+  gridLayout->addWidget( aa_lbl, 2, 2, 1, 1 );
+  aa_le = new QLineEdit( this );
+  aa_le->setObjectName( QSL("aa_le") );
+  aa_le->setText( QSN( d.aa ) );
+  auto *aa_v = new QDoubleValidator( -180, 180, 3, this );
+  aa_le->setValidator( aa_v );
+  gridLayout->addWidget( aa_le, 2, 3, 1, 1 );
+  aa_lbl->setBuddy( aa_le );
+
+  a_lbl = new QLabel( QSL("a"), this );
+  a_lbl->setObjectName( QSL("a_lbl") );
+  gridLayout->addWidget( a_lbl, 3, 2, 1, 1 );
+  a_le = new QLineEdit( this );
+  a_le->setObjectName( QSL("a_le") );
+  a_le->setText( QSN( d.a ) );
+  auto *a_v = new QDoubleValidator( -1000, 1000.0, 3, this );
+  a_le->setValidator( a_v );
+  gridLayout->addWidget( a_le, 3, 3, 1, 1 );
+  a_lbl->setBuddy( a_le );
+
+  b_lbl = new QLabel( QSL("b"), this );
+  b_lbl->setObjectName( QSL("b_lbl") );
+  gridLayout->addWidget( b_lbl, 4, 2, 1, 1 );
+  b_le = new QLineEdit( this );
+  b_le->setObjectName( QSL("b_le") );
+  b_le->setText( QSN( d.b ) );
+  auto *b_v = new QDoubleValidator( -1000, 1000.0, 3, this );
+  b_le->setValidator( b_v );
+  gridLayout->addWidget( b_le, 4, 3, 1, 1 );
+  b_lbl->setBuddy( b_le );
+
+  c_lbl = new QLabel( QSL("c"), this );
+  c_lbl->setObjectName( QSL("c_lbl") );
+  gridLayout->addWidget( c_lbl, 5, 2, 1, 1 );
+  c_le = new QLineEdit( this );
+  c_le->setObjectName( QSL("c_le") );
+  c_le->setText( QSN( d.c ) );
+  auto *c_v = new QDoubleValidator( -1000, 1000.0, 3, this );
+  c_le->setValidator( c_v );
+  gridLayout->addWidget( c_le, 5, 3, 1, 1 );
+  c_lbl->setBuddy( c_le );
+
+  d_lbl = new QLabel( QSL("d"), this );
+  d_lbl->setObjectName( QSL("d_lbl") );
+  gridLayout->addWidget( d_lbl, 6, 2, 1, 1 );
+  d_le = new QLineEdit( this );
+  d_le->setObjectName( QSL("d_le") );
+  d_le->setText( QSN( d.d ) );
+  auto *d_v = new QDoubleValidator( -1000, 1000.0, 3, this );
+  d_le->setValidator( d_v );
+  gridLayout->addWidget( d_le, 6, 3, 1, 1 );
+  d_lbl->setBuddy( d_le );
+
 
   verticalLayout->addLayout( gridLayout );
 
@@ -108,8 +185,15 @@ void GenerDialog::accept()
   d.h = ( h_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.iter = iter_le->text().toInt();
   d.type = type_cb->currentText().toInt();
-  d.size0 = clamp( size0_le->text().toDouble(), 1.0, 10000.0 );
-  d.scale = clamp( scale_le->text().toDouble(), 0.001, 1.0 );
+  d.size0 = clamp( size0_le->text().toDouble(),     1.0,  10000.0 );
+  d.scale = clamp( scale_le->text().toDouble(),     0.001,    1.0 );
+  d.ss    = clamp(    ss_le->text().toDouble(),     0.001,   10.0 );
+  d.as    = clamp(    as_le->text().toDouble(),     0.001,   10.0 );
+  d.aa    = clamp(    aa_le->text().toDouble(),  -180.0,    180.0 );
+  d.a     = clamp(     a_le->text().toDouble(), -1000.0,   1000.0 );
+  d.b     = clamp(     b_le->text().toDouble(), -1000.0,   1000.0 );
+  d.c     = clamp(     c_le->text().toDouble(), -1000.0,   1000.0 );
+  d.d     = clamp(     d_le->text().toDouble(), -1000.0,   1000.0 );
   QDialog::accept();
 }
 
