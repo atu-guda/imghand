@@ -70,6 +70,27 @@ static const int bit_tab[256] = {
   4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
+void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth )
+{
+  const QPolygonF &po_s = f.form;
+  p.drawPolygon( po_s,   Qt::WindingFill );
+
+  --depth;
+  if( depth < 0 ) {
+    return;
+  }
+
+  for( const auto sub : f.subs ) {
+    p.save();
+    p.translate( sub.x(), sub.y() );
+    p.scale( gdat.scale, gdat.scale );
+    // p.rotate( 22.5 );
+    paintForm( p, gdat, f, depth );
+    // p.drawPolygon( po_s,   Qt::WindingFill );
+    p.restore();
+  }
+}
+
 ImgData::ImgData()
 {
   histo_r.assign( 256, 0.0 );
@@ -78,10 +99,20 @@ ImgData::ImgData()
   v_lnN.reserve( 32 );
 }
 
+// -------------------------- ImgHand -------------------------------------
+
 ImgHand::ImgHand()
   : scene( new QGraphicsScene( this ) ),
   view( new QGraphicsView( scene ) )
 {
+  // star
+  forms.append( FormInfo{ QVector<QPointF> {
+      {0.0,1.0}, {0.2,0.2}, {1.0,0.0}, {0.2,-0.2}, {0.0,-1.0},
+      {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
+   },
+   QVector<QPointF> { {0.8,0.8}, {0.8,-0.8}, {-0.8,-0.8}, {-0.8,0.8} },
+   QVector<double> { 0.0, 0.0, 0.0, 0.0 },
+  } );
 
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
@@ -146,10 +177,10 @@ void ImgHand::gener()
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  QPolygonF po_s( QVector<QPointF> {
-      {0.0,1.0}, {0.2,0.2}, {1.0,0.0}, {0.2,-0.2}, {0.0,-1.0},
-      {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
-  } );
+  if( (int)gdat.type >= forms.size() ) {
+    gdat.type = 0;
+  }
+
 
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
   QPainter p( &img_s );
@@ -161,20 +192,22 @@ void ImgHand::gener()
   p.translate( x0, y0 );
   p.scale( gdat.size0, gdat.size0 );
 
-  p.drawPolygon( po_s,   Qt::WindingFill );
+  paintForm( p, gdat, forms[gdat.type], gdat.iter );
 
-  p.save();
-  p.translate( 0.7, 0.7 );
-  p.scale( gdat.scale, gdat.scale );
-  p.drawPolygon( po_s,   Qt::WindingFill );
-  p.restore();
-
-  p.save();
-  p.translate( 0.7, -0.7 );
-  p.scale( gdat.scale, gdat.scale );
-  p.rotate( 22.5 );
-  p.drawPolygon( po_s,   Qt::WindingFill );
-  p.restore();
+  // p.drawPolygon( po_s,   Qt::WindingFill );
+  //
+  // p.save();
+  // p.translate( 0.7, 0.7 );
+  // p.scale( gdat.scale, gdat.scale );
+  // p.drawPolygon( po_s,   Qt::WindingFill );
+  // p.restore();
+  //
+  // p.save();
+  // p.translate( 0.7, -0.7 );
+  // p.scale( gdat.scale, gdat.scale );
+  // p.rotate( 22.5 );
+  // p.drawPolygon( po_s,   Qt::WindingFill );
+  // p.restore();
 
   // p.drawEllipse( x0, y0, gdat.size0, gdat.size0 );
 

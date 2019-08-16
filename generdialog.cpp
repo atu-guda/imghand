@@ -71,7 +71,7 @@ void GenerDialog::setupUi()
   size0_le = new QLineEdit( this );
   size0_le->setObjectName( QSL("size0_le") );
   size0_le->setText( QSN( d.size0 ) );
-  auto *size0_v = new QDoubleValidator( 1, 512, 3, this );
+  auto *size0_v = new QDoubleValidator( 1, 10000, 3, this );
   size0_le->setValidator( size0_v );
   gridLayout->addWidget( size0_le, 4, 1, 1, 1 );
   size0_lbl->setBuddy( size0_le );
@@ -108,7 +108,7 @@ void GenerDialog::accept()
   d.h = ( h_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.iter = iter_le->text().toInt();
   d.type = type_cb->currentText().toInt();
-  d.size0 = clamp( size0_le->text().toDouble(), 1.0, 1000.0 );
+  d.size0 = clamp( size0_le->text().toDouble(), 1.0, 10000.0 );
   d.scale = clamp( scale_le->text().toDouble(), 0.001, 1.0 );
   QDialog::accept();
 }

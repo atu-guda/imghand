@@ -40,6 +40,8 @@ class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsPixmapItem;
 
+struct GenerData;
+
 namespace cv {
  class Mat;
 };
@@ -65,6 +67,13 @@ bool boxCount0( const QImage &imgx, ImgData &ida );
 void img2mat( const QImage &img, cv::Mat &m );
 void mat2img( const cv::Mat &m, QImage &img );
 
+struct FormInfo {
+  QPolygonF form;
+  QVector<QPointF> subs;
+  QVector<double> angs;
+};
+
+void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth );
 
 class ImgHand : public QMainWindow
 {
@@ -129,6 +138,8 @@ private:
       QString curFile;
       bool loaded = false;
       ImgData ida;
+
+      QVector<FormInfo> forms;
 
       // =================== User Interface =================
       QStatusBar *statBar;
