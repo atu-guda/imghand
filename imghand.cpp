@@ -146,13 +146,37 @@ void ImgHand::gener()
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
+  QPolygonF po_s( QVector<QPointF> {
+      {0.0,1.0}, {0.2,0.2}, {1.0,0.0}, {0.2,-0.2}, {0.0,-1.0},
+      {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
+  } );
+
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
   QPainter p( &img_s );
   p.fillRect( 0, 0, gdat.w, gdat.h, Qt::white );
   auto x0 = gdat.w / 2;
   auto y0 = gdat.h / 2;
+
   p.setBrush( Qt::gray ); p.setPen( Qt::NoPen );
-  p.drawEllipse( x0, y0, gdat.size0, gdat.size0 );
+  p.translate( x0, y0 );
+  p.scale( gdat.size0, gdat.size0 );
+
+  p.drawPolygon( po_s,   Qt::WindingFill );
+
+  p.save();
+  p.translate( 0.7, 0.7 );
+  p.scale( gdat.scale, gdat.scale );
+  p.drawPolygon( po_s,   Qt::WindingFill );
+  p.restore();
+
+  p.save();
+  p.translate( 0.7, -0.7 );
+  p.scale( gdat.scale, gdat.scale );
+  p.rotate( 22.5 );
+  p.drawPolygon( po_s,   Qt::WindingFill );
+  p.restore();
+
+  // p.drawEllipse( x0, y0, gdat.size0, gdat.size0 );
 
   loaded = true;
   setCurrentFile( QSL("newfile.png") ); // TODO: + index
@@ -165,11 +189,6 @@ void ImgHand::gener()
 
   if( global_debug > 0 ) {
     cerr << qPrintable( s ) << endl;
-  }
-  if( global_debug > 1 ) {
-    cerr << "Scene: " << scene->width() << 'x' << scene->height() << endl;
-    cerr << "View:  " <<  view->width() << 'x' << view->height()  << endl;
-    cerr << "MainW: " <<  this->width() << 'x' << this->height()  << endl;
   }
 
   restoreImage();
