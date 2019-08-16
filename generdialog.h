@@ -13,7 +13,7 @@
 #include <QVBoxLayout>
 
 struct GenerData {
-  unsigned w = 1024, h = 768, iter = 6;
+  unsigned w = 1024, h = 1024, iter = 7;
   unsigned type = 0; // TODO: enum - list
   double size0 = 200, scale = 0.5, ss = 1.0, as = 1.0, aa = 0.0;
   // ss = shift_scale, as = alpha_scale, aa = alpha_add

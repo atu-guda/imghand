@@ -115,6 +115,25 @@ ImgHand::ImgHand()
    QVector<double> {       0.0,        0.0,         0.0,        0.0 },
   } );
 
+  // box
+  forms.append( FormInfo{ QVector<QPointF> {
+      {1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}, {1.0,1.0}
+   },
+   QVector<QPointF> { {1.7,1.7}, {1.7,-1.7}, {-1.7,-1.7}, {-1.7,1.7} },
+   QVector<double> {       0.0,        0.0,         0.0,        0.0 },
+  } );
+
+  // triangle
+  constexpr double sqrt3   = sqrt( 3.0 );
+  constexpr double sqrt3_2 = sqrt3 / 2;
+  forms.append( FormInfo{ QVector<QPointF> {
+      {0.0,1.0}, {sqrt3_2,-0.5}, {-sqrt3_2,-0.5}, {0.0,1.0,}
+   },
+   QVector<QPointF> { {sqrt3,1.0}, {0.0,-2.0}, {-sqrt3,1.0} },
+   QVector<double> {        180.0,      180.0,       180.0  },
+  } );
+
+
   scene->setSceneRect( 0, 0, 800, 800 ); // safe values
   view->setDragMode( QGraphicsView::RubberBandDrag );
 
@@ -191,7 +210,7 @@ void ImgHand::gener()
 
   p.setBrush( Qt::black ); p.setPen( Qt::NoPen );
   p.translate( x0, y0 );
-  p.scale( gdat.size0, gdat.size0 );
+  p.scale( gdat.size0, -gdat.size0 );
 
   paintForm( p, gdat, forms[gdat.type], gdat.iter );
 

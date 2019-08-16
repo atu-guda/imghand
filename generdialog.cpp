@@ -58,7 +58,7 @@ void GenerDialog::setupUi()
   type_cb = new QComboBox( this );
   type_cb->addItem( QSL("Star") );
   type_cb->addItem( QSL("Box") );
-  type_cb->addItem( QSL("X2") );
+  type_cb->addItem( QSL("Triangle") );
   type_cb->addItem( QSL("X3") );
   type_cb->setObjectName( QSL("type_cb") );
   gridLayout->addWidget( type_cb, 3, 1, 1, 1 );
@@ -184,7 +184,7 @@ void GenerDialog::accept()
   d.w = ( w_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.h = ( h_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.iter = iter_le->text().toInt();
-  d.type = type_cb->currentText().toInt();
+  d.type = type_cb->currentIndex();
   d.size0 = clamp( size0_le->text().toDouble(),     1.0,  10000.0 );
   d.scale = clamp( scale_le->text().toDouble(),     0.001,    1.0 );
   d.ss    = clamp(    ss_le->text().toDouble(),     0.001,   10.0 );
