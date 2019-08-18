@@ -84,7 +84,7 @@ void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth
   for( const auto sub : f.subs ) {
     p.save();
     p.translate( sub.x() * gdat.ss, sub.y() * gdat.ss );
-    p.scale( gdat.scale, gdat.scale );
+    p.scale( f.scale * gdat.scale, f.scale * gdat.scale );
     p.rotate( f.angs[i] * gdat.as + gdat.aa );
     paintForm( p, gdat, f, depth );
     p.restore();
@@ -107,7 +107,8 @@ ImgHand::ImgHand()
   view( new QGraphicsView( scene ) )
 {
   // star
-  forms.append( FormInfo{ QVector<QPointF> {
+  forms.append( FormInfo{ 0.5, 0.314,
+      QVector<QPointF> {
       {0.0,1.0}, {0.2,0.2}, {1.0,0.0}, {0.2,-0.2}, {0.0,-1.0},
       {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
    },
@@ -116,7 +117,8 @@ ImgHand::ImgHand()
   } );
 
   // box
-  forms.append( FormInfo{ QVector<QPointF> {
+  forms.append( FormInfo{ 0.5, 0.15,
+      QVector<QPointF> {
       {1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}, {1.0,1.0}
    },
    QVector<QPointF> { {1.7,1.7}, {1.7,-1.7}, {-1.7,-1.7}, {-1.7,1.7} },
@@ -126,7 +128,8 @@ ImgHand::ImgHand()
   // triangle
   constexpr double sqrt3   = sqrt( 3.0 );
   constexpr double sqrt3_2 = sqrt3 / 2;
-  forms.append( FormInfo{ QVector<QPointF> {
+  forms.append( FormInfo{ 0.5, 0.2,
+      QVector<QPointF> {
       {0.0,1.0}, {sqrt3_2,-0.5}, {-sqrt3_2,-0.5}, {0.0,1.0,}
    },
    QVector<QPointF> { {sqrt3,1.0}, {0.0,-2.0}, {-sqrt3,1.0} },
@@ -200,6 +203,7 @@ void ImgHand::gener()
   if( (int)gdat.type >= forms.size() ) {
     gdat.type = 0;
   }
+  const auto& form_cur = forms[gdat.type];
 
 
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
@@ -210,9 +214,9 @@ void ImgHand::gener()
 
   p.setBrush( Qt::black ); p.setPen( Qt::NoPen );
   p.translate( x0, y0 );
-  p.scale( gdat.size0, -gdat.size0 );
+  p.scale( form_cur.scale0 * gdat.w * gdat.size0, -form_cur.scale0 * gdat.h * gdat.size0 );
 
-  paintForm( p, gdat, forms[gdat.type], gdat.iter );
+  paintForm( p, gdat, form_cur, gdat.iter );
 
 
   loaded = true;
@@ -512,7 +516,7 @@ void ImgHand::boxCount0Slot()
   cout << "File: \"" << qPrintable( curFile )
        << "\" Corr: " << ida.corr << " d1: " << ida.d1 << " c0: " << ida.c0 << endl;
 
-  QString s = QString( "File: \"%1\" C1: %2, Corr: %3" ).arg( curFile ).arg( ida.d1 ).arg( ida.corr );
+  QString s = QString( "File: \"%1\" C1: <b>%2</b>, Corr: %3" ).arg( curFile ).arg( ida.d1 ).arg( ida.corr );
 
   QDialog *dia = new QDialog( this );
   QVBoxLayout *lay = new QVBoxLayout;

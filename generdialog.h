@@ -15,7 +15,7 @@
 struct GenerData {
   unsigned w = 1024, h = 1024, iter = 7;
   unsigned type = 0; // TODO: enum - list
-  double size0 = 200, scale = 0.5, ss = 1.0, as = 1.0, aa = 0.0;
+  double size0 = 1, scale = 1, ss = 1.0, as = 1.0, aa = 0.0;
   // ss = shift_scale, as = alpha_scale, aa = alpha_add
   double a = 1, b = 1, c = 1, d = 1;
 };

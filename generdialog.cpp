@@ -65,7 +65,7 @@ void GenerDialog::setupUi()
   type_lbl->setBuddy( type_cb );
 
 
-  size0_lbl = new QLabel( QSL("Element &size"), this );
+  size0_lbl = new QLabel( QSL("Initial &size"), this );
   size0_lbl->setObjectName( QSL("size0_lbl") );
   gridLayout->addWidget( size0_lbl, 4, 0, 1, 1 );
   size0_le = new QLineEdit( this );
@@ -76,7 +76,7 @@ void GenerDialog::setupUi()
   gridLayout->addWidget( size0_le, 4, 1, 1, 1 );
   size0_lbl->setBuddy( size0_le );
 
-  scale_lbl = new QLabel( QSL("&Scale"), this );
+  scale_lbl = new QLabel( QSL("Scale mult"), this );
   scale_lbl->setObjectName( QSL("scale_lbl") );
   gridLayout->addWidget( scale_lbl, 5, 0, 1, 1 );
   scale_le = new QLineEdit( this );
@@ -185,8 +185,8 @@ void GenerDialog::accept()
   d.h = ( h_le->text().toInt() + 15 ) & 0x0000FFF0;
   d.iter = iter_le->text().toInt();
   d.type = type_cb->currentIndex();
-  d.size0 = clamp( size0_le->text().toDouble(),     1.0,  10000.0 );
-  d.scale = clamp( scale_le->text().toDouble(),     0.001,    1.0 );
+  d.size0 = clamp( size0_le->text().toDouble(),     0.001,    2.0 );
+  d.scale = clamp( scale_le->text().toDouble(),     0.001,   10.0 );
   d.ss    = clamp(    ss_le->text().toDouble(),     0.001,   10.0 );
   d.as    = clamp(    as_le->text().toDouble(),     0.001,   10.0 );
   d.aa    = clamp(    aa_le->text().toDouble(),  -180.0,    180.0 );
