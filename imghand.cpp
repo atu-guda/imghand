@@ -84,7 +84,7 @@ void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth
   for( const auto sub : f.subs ) {
     p.save();
     p.translate( sub.x() * gdat.ss, sub.y() * gdat.ss );
-    p.scale( f.scale * gdat.scale, f.scale * gdat.scale );
+    p.scale( gdat.eff_scale, gdat.eff_scale );
     p.rotate( f.angs[i] * gdat.as + gdat.aa );
     paintForm( p, gdat, f, depth );
     p.restore();
@@ -188,7 +188,6 @@ void ImgHand::open()
 
 void ImgHand::gener()
 {
-  GenerData gdat;
   GenerDialog *dia = new GenerDialog( gdat, this );
 
   auto rc = dia->exec();
@@ -204,6 +203,7 @@ void ImgHand::gener()
     gdat.type = 0;
   }
   const auto& form_cur = forms[gdat.type];
+  gdat.calc_eff( form_cur );
 
 
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
@@ -214,7 +214,7 @@ void ImgHand::gener()
 
   p.setBrush( Qt::black ); p.setPen( Qt::NoPen );
   p.translate( x0, y0 );
-  p.scale( form_cur.scale0 * gdat.w * gdat.size0, -form_cur.scale0 * gdat.h * gdat.size0 );
+  p.scale( form_cur.scale0 * gdat.w * gdat.size0, - form_cur.scale0 * gdat.h * gdat.size0 );
 
   paintForm( p, gdat, form_cur, gdat.iter );
 

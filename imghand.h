@@ -29,6 +29,7 @@
 #include <QString>
 
 #include "imghand_base.h"
+#include "generdialog.h"
 
 
 class QAction;
@@ -39,8 +40,6 @@ class QScrollArea;
 class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsPixmapItem;
-
-struct GenerData;
 
 namespace cv {
  class Mat;
@@ -141,6 +140,7 @@ private:
       ImgData ida;
 
       QVector<FormInfo> forms;
+      GenerData gdat;
 
       // =================== User Interface =================
       QStatusBar *statBar;
