@@ -70,22 +70,31 @@ static const int bit_tab[256] = {
   4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
-void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth )
+void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, unsigned depth )
 {
-  const QPolygonF &po_s = f.form;
-  p.drawPolygon( po_s,   Qt::WindingFill );
-
-  --depth;
-  if( depth < 0 ) {
+  if( depth < 1 ) {
     return;
   }
+  unsigned level =  gdat.iter - depth;
+  --depth;
+
+  if( level == 0 ) {
+    p.save();
+    p.setBrush( Qt::gray );
+  }
+  p.drawPolygon( f.form,   Qt::WindingFill );
+  if( level == 0 ) {
+    p.restore();
+  }
+
 
   int i = 0;
   for( const auto sub : f.subs ) {
     p.save();
     p.translate( sub.x() * gdat.ss, sub.y() * gdat.ss );
     p.scale( gdat.eff_scale, gdat.eff_scale );
-    p.rotate( f.angs[i] * gdat.as + gdat.aa );
+    double ang = ( f.angs[i] * gdat.as + gdat.aa ) * ( level + 1 );
+    p.rotate( ang );
     paintForm( p, gdat, f, depth );
     p.restore();
     ++i;
@@ -199,11 +208,7 @@ void ImgHand::gener()
 
   QApplication::setOverrideCursor( Qt::WaitCursor );
 
-  if( (int)gdat.type >= forms.size() ) {
-    gdat.type = 0;
-  }
   const auto& form_cur = forms[gdat.type];
-  gdat.calc_eff( form_cur );
 
 
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );

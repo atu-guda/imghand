@@ -75,7 +75,7 @@ struct FormInfo {
   QVector<double> angs;
 };
 
-void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, int depth );
+void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, unsigned depth );
 
 class ImgHand : public QMainWindow
 {

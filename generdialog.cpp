@@ -141,6 +141,12 @@ void GenerDialog::accept()
   d.b     = clamp(     b_le->text().toDouble(), -1000.0,   1000.0 );
   d.c     = clamp(     c_le->text().toDouble(), -1000.0,   1000.0 );
   d.d     = clamp(     d_le->text().toDouble(), -1000.0,   1000.0 );
+
+  if( d.type >= (unsigned)forms.size() ) {
+    d.type = 0;
+  }
+  d.calc_eff( forms[d.type] );
+
   QDialog::accept();
 }
 
