@@ -4,7 +4,11 @@ using namespace std;
 
 void GenerData::calc_eff( const FormInfo &f )
 {
-  eff_scale = scale * f.scale;
+  if( ovr_scale ) {
+    eff_scale = scale;
+  } else {
+    eff_scale = scale * f.scale;
+  }
 }
 
 GenerDialog::GenerDialog( GenerData &sd, const QVector<FormInfo> &a_forms, QWidget *parent )
@@ -51,6 +55,16 @@ QComboBox* GenerDialog::addComboBox( const QString &lbl_str, const QStringList &
   return cb;
 }
 
+QCheckBox* GenerDialog::addCheckBox( const QString &lbl_str )
+{
+  // auto lbl = new QLabel( lbl_str, this );
+  // gridLayout->addWidget( lbl, c_row[c_col], 2*c_col, 1, 1 );
+  auto cb = new QCheckBox( lbl_str, this );
+  gridLayout->addWidget( cb, c_row[c_col], 2*c_col, 1, 2 );
+  goNextCell();
+  return cb;
+}
+
 void GenerDialog::setupUi()
 {
   setObjectName( QSL("GenerDialog") );
@@ -76,6 +90,7 @@ void GenerDialog::setupUi()
 
   size0_le  = addDoubleEdit( QSL("Initial &size"), 0.001, 3.0, 3 );
   scale_le  = addDoubleEdit( QSL("Scale mult"),    0.001, 3.0, 3 );
+  ovr_scale_cb = addCheckBox( QSL("Override scale") );
 
   c_col = 1;
 
@@ -117,6 +132,8 @@ void GenerDialog::accept()
   d.type = type_cb->currentIndex();
   d.size0 = clamp( size0_le->text().toDouble(),     0.001,    2.0 );
   d.scale = clamp( scale_le->text().toDouble(),     0.001,   10.0 );
+  d.ovr_scale = ovr_scale_cb->checkState() == Qt::Checked;
+
   d.ss    = clamp(    ss_le->text().toDouble(),     0.001,   10.0 );
   d.as    = clamp(    as_le->text().toDouble(),     0.001,   10.0 );
   d.aa    = clamp(    aa_le->text().toDouble(),  -180.0,    180.0 );
@@ -136,6 +153,8 @@ void GenerDialog::revert()
   type_cb->setCurrentIndex( d.type );
   size0_le->setText( QSN( d.size0 ) );
   scale_le->setText( QSN( d.scale ) );
+  ovr_scale_cb->setCheckState( d.ovr_scale ? Qt::Checked : Qt::Unchecked );
+
   ss_le->setText( QSN( d.ss ) );
   as_le->setText( QSN( d.as ) );
   aa_le->setText( QSN( d.aa ) );

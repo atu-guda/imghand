@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QVBoxLayout>
 
 struct FormInfo; // from imghand.h
@@ -18,6 +19,7 @@ struct GenerData {
   unsigned w = 1024, h = 1024, iter = 7;
   unsigned type = 0; // TODO: enum - list
   double size0 = 1, scale = 1;
+  int ovr_scale = 0; // false
   double ss = 1.0, as = 1.0, aa = 0.0;
   // ss = shift_scale, as = alpha_scale, aa = alpha_add
   double a = 1, b = 1, c = 1, d = 1;
@@ -42,6 +44,7 @@ class GenerDialog : public QDialog {
    QLineEdit* addIntEdit( const QString &lbl_str, int vmin, int vmax );
    QLineEdit* addDoubleEdit( const QString &lbl_str, double vmin, double vmax, int digs );
    QComboBox* addComboBox( const QString &lbl_str, const QStringList &items );
+   QCheckBox* addCheckBox( const QString &lbl_str );
 
    GenerData &d;
    const QVector<FormInfo> &forms;
@@ -51,18 +54,14 @@ class GenerDialog : public QDialog {
    QVBoxLayout *verticalLayout;
    QGridLayout *gridLayout;
 
-   QLabel   *w_lbl, *h_lbl, *iter_lbl;
    QLineEdit *w_le,  *h_le,  *iter_le;
 
-   QLabel *type_lbl;
    QComboBox *type_cb;
 
-   QLabel   *size0_lbl, *scale_lbl;
    QLineEdit *size0_le, *scale_le;
+   QCheckBox *ovr_scale_cb;
 
-   QLabel   *ss_lbl, *as_lbl, *aa_lbl;
    QLineEdit *ss_le, *as_le, *aa_le;
-   QLabel    *a_lbl, *b_lbl, *c_lbl, *d_lbl;
    QLineEdit *a_le,   *b_le,  *c_le, *d_le;
 
    QPushButton *btnRevert;
