@@ -78,15 +78,7 @@ void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, unsigned 
   unsigned level =  gdat.iter - depth;
   --depth;
 
-  if( level == 0 ) {
-    p.save();
-    p.setBrush( Qt::gray );
-  }
   p.drawPolygon( f.form,   Qt::WindingFill );
-  if( level == 0 ) {
-    p.restore();
-  }
-
 
   int i = 0;
   for( const auto sub : f.subs ) {
@@ -143,6 +135,17 @@ ImgHand::ImgHand()
    },
    QVector<QPointF> { {sqrt3,1.0}, {0.0,-2.0}, {-sqrt3,1.0} },
    QVector<double> {        180.0,      180.0,       180.0  },
+  } );
+
+  // Serpinsky carpet
+  constexpr double d1_6  = 1.0/ 6.0;
+  constexpr double d1_3  = 1.0/ 3.0;
+  forms.append( FormInfo{ QSL("Carpet"), d1_3, d1_6,
+      QVector<QPointF> {
+      {1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}, {1.0,1.0}
+   },
+   QVector<QPointF> {  {0.0,2.0}, {2.0,2.0},  {2.0,0.0}, {2.0,-2.0}, {0.0,-2.0}, {-2.0,-2.0}, {-2.0,0.0}, {-2.0,2.0} },
+   QVector<double>  {        0.0,       0.0,        0.0,        0.0,        0.0,         0.0,        0.0,       0.0  },
   } );
 
 
@@ -213,7 +216,8 @@ void ImgHand::gener()
 
   img_s  = QImage( gdat.w, gdat.h, QImage::Format_Grayscale8 );
   QPainter p( &img_s );
-  p.fillRect( 0, 0, gdat.w, gdat.h, Qt::white );
+  // p.fillRect( 0, 0, gdat.w, gdat.h, Qt::white );
+  p.fillRect( 0, 0, gdat.w, gdat.h, QColor( 230,230,230 ) );
   auto x0 = gdat.w / 2;
   auto y0 = gdat.h / 2;
 
