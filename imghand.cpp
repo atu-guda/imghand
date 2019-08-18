@@ -107,7 +107,7 @@ ImgHand::ImgHand()
   view( new QGraphicsView( scene ) )
 {
   // star
-  forms.append( FormInfo{ 0.5, 0.314,
+  forms.append( FormInfo{ QSL("Star"), 0.5, 0.314,
       QVector<QPointF> {
       {0.0,1.0}, {0.2,0.2}, {1.0,0.0}, {0.2,-0.2}, {0.0,-1.0},
       {-0.2,-0.2}, {-1.0,0.0}, {-0.2,0.2}, {0.0,1.0}
@@ -117,7 +117,7 @@ ImgHand::ImgHand()
   } );
 
   // box
-  forms.append( FormInfo{ 0.5, 0.15,
+  forms.append( FormInfo{ QSL("Box"), 0.5, 0.15,
       QVector<QPointF> {
       {1.0,1.0}, {1.0,-1.0}, {-1.0,-1.0}, {-1.0,1.0}, {1.0,1.0}
    },
@@ -128,7 +128,7 @@ ImgHand::ImgHand()
   // triangle
   constexpr double sqrt3   = sqrt( 3.0 );
   constexpr double sqrt3_2 = sqrt3 / 2;
-  forms.append( FormInfo{ 0.5, 0.2,
+  forms.append( FormInfo{ QSL("Triangle"), 0.5, 0.2,
       QVector<QPointF> {
       {0.0,1.0}, {sqrt3_2,-0.5}, {-sqrt3_2,-0.5}, {0.0,1.0,}
    },
@@ -188,7 +188,7 @@ void ImgHand::open()
 
 void ImgHand::gener()
 {
-  GenerDialog *dia = new GenerDialog( gdat, this );
+  GenerDialog *dia = new GenerDialog( gdat, forms, this );
 
   auto rc = dia->exec();
   delete dia;

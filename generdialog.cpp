@@ -7,8 +7,8 @@ void GenerData::calc_eff( const FormInfo &f )
   eff_scale = scale * f.scale;
 }
 
-GenerDialog::GenerDialog( GenerData &sd, QWidget *parent )
-  : QDialog( parent ), d( sd )
+GenerDialog::GenerDialog( GenerData &sd, const QVector<FormInfo> &a_forms, QWidget *parent )
+  : QDialog( parent ), d( sd ), forms( a_forms )
 {
   setupUi();
 }
@@ -20,7 +20,7 @@ QLineEdit* GenerDialog::addSomeEdit( const QString &lbl_str )
   auto le = new QLineEdit( this );
   gridLayout->addWidget( le, c_row[c_col], c_col*2+1, 1, 1 );
   lbl->setBuddy( le );
-  ++c_row[c_col];
+  goNextCell();
   return le;
 }
 
@@ -47,7 +47,7 @@ QComboBox* GenerDialog::addComboBox( const QString &lbl_str, const QStringList &
   cb->addItems( items );
   gridLayout->addWidget( cb, c_row[c_col], 2*c_col+1, 1, 1 );
   lbl->setBuddy( cb );
-  ++c_row[c_col];
+  goNextCell();
   return cb;
 }
 
@@ -68,7 +68,11 @@ void GenerDialog::setupUi()
   h_le    = addIntEdit( QSL("&Height"), 128, 20480 );
   iter_le = addIntEdit( QSL("&Iterations"), 1, 32 );
 
-  type_cb = addComboBox( QSL("&Type"), QStringList( { QSL("Star"), QSL("Box"), QSL("Triangle"), QSL("X3") } ) );
+  QStringList tp_names;
+  for( const auto& f : forms ) {
+    tp_names += f.name;
+  }
+  type_cb = addComboBox( QSL("&Type"), tp_names );
 
   size0_le  = addDoubleEdit( QSL("Initial &size"), 0.001, 3.0, 3 );
   scale_le  = addDoubleEdit( QSL("Scale mult"),    0.001, 3.0, 3 );

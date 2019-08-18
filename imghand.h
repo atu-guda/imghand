@@ -67,7 +67,9 @@ void img2mat( const QImage &img, cv::Mat &m );
 void mat2img( const cv::Mat &m, QImage &img );
 
 struct FormInfo {
-  double scale, scale0;
+  QString name;
+  double scale;   // subfigure scale
+  double scale0;  // initial scale to image
   QPolygonF form;
   QVector<QPointF> subs;
   QVector<double> angs;
