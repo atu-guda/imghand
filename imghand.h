@@ -109,6 +109,7 @@ class ImgHand : public QMainWindow
       void open();
       void gener();
       void saveAs();
+      void saveSource();
 
       void viewZoomIn();
       void viewZoomOut();
@@ -193,6 +194,7 @@ class ImgHand : public QMainWindow
 
       // QAction *saveAct;
       QAction *saveAsAct;
+      QAction *saveSourceAct;
       QAction *exitAct;
       // QAction *cutAct;
       // QAction *copyAct;

@@ -434,6 +434,15 @@ void ImgHand::saveAs()
   }
 }
 
+void ImgHand::saveSource()
+{
+  QString fileName = QFileDialog::getSaveFileName( this );
+
+  if( !fileName.isEmpty() ) {
+    img.save( fileName );
+  }
+}
+
 
 void ImgHand::analyze()
 {
@@ -826,12 +835,16 @@ void ImgHand::createActions()
   generAct->setToolTip( tr("Generate image (Ctrl+G)") );
   connect( generAct, &QAction::triggered, this, &ImgHand::gener );
 
-  saveAsAct = new QAction( QIcon(":/icons/filesaveas.png"), tr("&Save result"), this);
+  saveAsAct = new QAction( QIcon(":/icons/filesaveas.png"), tr("&Save result"), this );
   saveAsAct->setShortcut( tr("Ctrl+S") );
   saveAsAct->setToolTip( tr("Save result image (Ctrl+S)") );
   connect( saveAsAct, &QAction::triggered, this, &ImgHand::saveAs );
 
-  exitAct = new QAction( QIcon(":/icons/exit.png"),tr("E&xit"), this);
+  saveSourceAct = new QAction( tr("Save source"), this );
+  saveSourceAct->setToolTip( tr("Save source image") );
+  connect( saveSourceAct, &QAction::triggered, this, &ImgHand::saveSource );
+
+  exitAct = new QAction( QIcon(":/icons/exit.png"),tr("E&xit"), this );
   exitAct->setShortcut( tr("Ctrl+Q") );
   exitAct->setToolTip( tr("Exit the application (Ctrl+Q)"));
   connect( exitAct, &QAction::triggered, this, &ImgHand::close );
@@ -926,6 +939,7 @@ void ImgHand::createMenus()
   fileMenu->addAction( generAct );
   fileMenu->addSeparator();
   fileMenu->addAction( saveAsAct );
+  fileMenu->addAction( saveSourceAct );
   fileMenu->addSeparator();
   fileMenu->addAction( exitAct );
 
