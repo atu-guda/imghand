@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Anton Guda                                 *
+ *   Copyright (C) 2018-2019 by Guda Anton, GRoza                          *
  *   atu@nmetau.edu.ua                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -101,11 +101,41 @@ ImgData::ImgData()
   v_lnN.reserve( 32 );
 }
 
+// -------------------------- ImgView -------------------------------------
+
+ImgView::ImgView( QGraphicsScene *scene, QWidget *parent )
+  : QGraphicsView( scene, parent )
+{
+  connect( this, &ImgView::rubberBandChanged, this, &ImgView::setRubber );
+}
+
+void ImgView::setRubber( QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint )
+{
+  if( ! rubberBandRect.isEmpty() ) {
+    // rub_band = rubberBandRect;
+    rub_band = QRectF( fromScenePoint, toScenePoint );
+  }
+}
+
+void ImgView::wheelEvent( QWheelEvent *w_ev )
+{
+  if( w_ev->modifiers() & Qt::ControlModifier ) {
+    const ViewportAnchor anchor = transformationAnchor();
+    setTransformationAnchor( QGraphicsView::AnchorUnderMouse );
+    int angle = w_ev->angleDelta().y();
+    double f = ( angle > 0 ) ? 1.1 : 0.9;
+    scale( f, f );
+    setTransformationAnchor( anchor );
+  } else {
+    QGraphicsView::wheelEvent( w_ev );
+  }
+}
+
 // -------------------------- ImgHand -------------------------------------
 
 ImgHand::ImgHand()
   : scene( new QGraphicsScene( this ) ),
-  view( new QGraphicsView( scene ) )
+  view( new ImgView( scene ) )
 {
   // star
   forms.append( FormInfo{ QSL("Star"), 0.5, 0.314,
@@ -748,8 +778,8 @@ void ImgHand::viewZoomFit()
 
 void ImgHand::viewZoomSel()
 {
-  // QRectF s = scene->selRect();
-  // view->fitInView( s, Qt::KeepAspectRatio );
+  auto r = view->get_rub_band();
+  view->fitInView( r, Qt::KeepAspectRatio );
 }
 
 void ImgHand::viewSource()

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018-2019 by Anton Guda                                 *
+ *   Copyright (C) 2018-2019 by Guda Anton, GRoza                          *
  *   atu@nmetau.edu.ua                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -26,6 +26,7 @@
 #include <vector>
 
 #include <QMainWindow>
+#include <QGraphicsView>
 #include <QString>
 
 #include "imghand_base.h"
@@ -77,20 +78,34 @@ struct FormInfo {
 
 void paintForm( QPainter &p, const GenerData &gdat, const FormInfo &f, unsigned depth );
 
+// -------------------------- ImgView -------------------------------------
+
+class ImgView : public QGraphicsView {
+ Q_OBJECT
+ public:
+   ImgView( QGraphicsScene *scene, QWidget *parent = nullptr );
+   void wheelEvent( QWheelEvent *w_ev );
+   QRectF get_rub_band() const { return rub_band; };
+ public slots:
+   void setRubber( QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint );
+ protected:
+   QRectF rub_band = QRectF();
+};
+
 class ImgHand : public QMainWindow
 {
-      Q_OBJECT
+  Q_OBJECT
 
-public:
+  public:
       ImgHand();
       ~ImgHand();
       void loadFile( const QString &fileName );
 
-protected:
+  protected:
       // void closeEvent(QCloseEvent *event);
       void contextMenuEvent(QContextMenuEvent *event);
 
-private slots:
+  private slots:
       void open();
       void gener();
       void saveAs();
@@ -116,7 +131,7 @@ private slots:
       void about();
 
 
-private:
+  private:
       void createActions();
       void createMenus();
       void createToolBars();
@@ -132,9 +147,8 @@ private:
       QImage img_s;  //* saved image
       QImage imgx;   //* image after filters
 
-      // new Scene approach
       QGraphicsScene *scene;
-      QGraphicsView *view;
+      ImgView *view;
       QGraphicsPixmapItem *pi1 = nullptr, *pi2 = nullptr;
 
       QString curFile;

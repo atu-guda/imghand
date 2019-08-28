@@ -1,6 +1,6 @@
 /***************************************************************************
- *   Copyright (C) 2018 by Guda Anton   *
- *   atu@nmetau.edu.ua   *
+ *   Copyright (C) 2018-2019 by Guda Anton, GRoza                          *
+ *   atu@nmetau.edu.ua                                                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
